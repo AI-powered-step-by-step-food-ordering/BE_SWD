@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:mysql://183.81.20.100:4459/food?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123456@Abc
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    jackson:
+      serialization:
+        WRITE_DATES_AS_TIMESTAMPS: false
+
+app:
+  jwt:
+    secret: "change-this-to-a-long-random-secret"
+    expiration-ms: 86400000
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs.path: /v3/api-docs
+  swagger-ui.path: /swagger-ui.html
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+
