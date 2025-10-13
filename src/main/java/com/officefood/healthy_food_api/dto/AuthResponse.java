@@ -1,8 +1,11 @@
 package com.officefood.healthy_food_api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "AuthResponse", description = "Kết quả xác thực")
 public record AuthResponse(
-        String accessToken,
-        String tokenType,
-        String email,
-        String fullName
+        @Schema(example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...") String accessToken,
+        @Schema(example = "Bearer") String tokenType,
+        @Schema(example = "user@example.com") String email,
+        @Schema(example = "Nguyen Van A") String fullName
 ) {}
