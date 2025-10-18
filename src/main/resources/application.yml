@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/food?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
-    username: ${SPRING_DATASOURCE_USERNAME:app}
-    password: ${SPRING_DATASOURCE_PASSWORD:app_password}
+    url: jdbc:mysql://cinezone.info:4459/food?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 123456@Abc
   jpa:
     hibernate:
       ddl-auto: update
@@ -30,6 +30,8 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
 
 logging:
   level:

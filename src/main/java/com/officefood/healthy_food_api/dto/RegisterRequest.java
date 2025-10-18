@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.dto;
 
+import com.officefood.healthy_food_api.model.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
@@ -20,25 +21,24 @@ public class RegisterRequest {
     @NotBlank
     @Size(max = 255)
     private String fullName;
+
     @Schema(example = "user@example.com")
     @Email
     @JsonProperty("email")
     @NotBlank
     @Size(max = 255)
     private String email;
+
     @Schema(example = "P@ssw0rd!")
     @JsonProperty("password")
     @NotBlank
     @Size(min = 6, max = 100)
     private String password;
 
-    @Schema(example = "ACME Co")
-    @JsonProperty("companyName")
-    @Size(max = 255)
-    private String companyName;
-
     @Schema(example = "LOSE_WEIGHT")
     @JsonProperty("goalCode")
     @Size(max = 50)
     private String goalCode;
+
+    private Role role;
 }

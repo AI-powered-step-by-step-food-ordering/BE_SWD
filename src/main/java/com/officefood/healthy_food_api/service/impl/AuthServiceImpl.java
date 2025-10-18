@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Service
@@ -45,9 +46,10 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         user.setFullName(req.getFullName());
         user.setEmail(req.getEmail());
-        user.setCompanyName(req.getCompanyName());
         user.setGoalCode(req.getGoalCode());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setRole(req.getRole());
+        user.setCreatedAt(OffsetDateTime.now());
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
@@ -74,5 +76,3 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 }
-
-
