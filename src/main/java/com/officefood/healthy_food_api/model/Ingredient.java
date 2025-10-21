@@ -1,6 +1,5 @@
 package com.officefood.healthy_food_api.model;
 
-import com.officefood.healthy_food_api.model.enums.IngredientKind;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -20,10 +19,6 @@ public class Ingredient {
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
     @JoinColumn(name="category_id", nullable=false, columnDefinition="BINARY(16)")
     private Category category;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable=false, length=30)
-    private IngredientKind kind;
 
     @Column(name="unit", length=50)
     private String unit;

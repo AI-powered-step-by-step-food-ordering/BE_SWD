@@ -1,5 +1,9 @@
 package com.officefood.healthy_food_api.service;
-import java.util.*; import java.util.UUID;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 public interface CrudService<T> {
     List<T> findAll();
     Optional<T> findById(UUID id);

@@ -22,9 +22,6 @@ public class Store {
     @Column(length=50)
     private String phone;
 
-    @Column(length=100)
-    private String timezone;
-
     @OneToMany(mappedBy = "store")
     private Set<Order> orders = new HashSet<>();
 

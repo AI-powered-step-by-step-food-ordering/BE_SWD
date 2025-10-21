@@ -1,34 +1,69 @@
 package com.officefood.healthy_food_api.controller;
+
 import com.officefood.healthy_food_api.dto.request.PaymentTransactionRequest;
+import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.PaymentTransactionResponse;
 import com.officefood.healthy_food_api.mapper.PaymentTransactionMapper;
 import com.officefood.healthy_food_api.model.PaymentTransaction;
-import com.officefood.healthy_food_api.service.PaymentTransactionService;
+import com.officefood.healthy_food_api.provider.ServiceProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.*; import java.util.stream.Collectors;
 
-@RestController @RequestMapping("/api/paymentTransactions") @RequiredArgsConstructor
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/payment_transactions")
+@RequiredArgsConstructor
 public class PaymentTransactionController {
-    private final PaymentTransactionService service;
+    private final ServiceProvider sp;
     private final PaymentTransactionMapper mapper;
 
-    @GetMapping("/getall") public List<PaymentTransactionResponse> list() {
-        return service.findAll().stream().map(mapper::toResponse).collect(Collectors.toList());
-    }
-    @GetMapping("/getbyid") public ResponseEntity<PaymentTransactionResponse> get(@PathVariable java.util.UUID id) {
-        return service.findById(id).map(mapper::toResponse).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-    @PostMapping("/create") public PaymentTransactionResponse create(@Valid @RequestBody PaymentTransactionRequest req) {
-        return mapper.toResponse(service.create(mapper.toEntity(req)));
-    }
-    @PutMapping("/update") public PaymentTransactionResponse update(@PathVariable java.util.UUID id, @Valid @RequestBody PaymentTransactionRequest req) {
-        PaymentTransaction e = mapper.toEntity(req); e.setId(id); return mapper.toResponse(service.update(id, e));
-    }
-    @DeleteMapping("/delete") public ResponseEntity<Void> delete(@PathVariable java.util.UUID id) {
-        service.deleteById(id); return ResponseEntity.noContent().build();
+    // GET /api/payment_transactions/getall
+    @GetMapping("/getall")
+    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getAll() {
+        List<PaymentTransactionResponse> paymentTransactions = sp.payments()
+                 .findAll()
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transactions retrieved successfully", paymentTransactions));
     }
 
+    // GET /api/payment_transactions/getbyid/{id}
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> getById(@PathVariable UUID id) {
+        return sp.payments()
+                 .findById(id)
+                 .map(mapper::toResponse)
+                 .map(payment -> ResponseEntity.ok(ApiResponse.success(200, "Payment transaction retrieved successfully", payment)))
+                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Payment transaction not found")));
+    }
+
+    // POST /api/payment_transactions/create
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> create(@Valid @RequestBody PaymentTransactionRequest req) {
+        PaymentTransactionResponse response = mapper.toResponse(sp.payments().create(mapper.toEntity(req)));
+        return ResponseEntity.ok(ApiResponse.success(201, "Payment transaction created successfully", response));
+    }
+
+    // PUT /api/payment_transactions/update/{id}
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> update(@PathVariable UUID id,
+                              @Valid @RequestBody PaymentTransactionRequest req) {
+        PaymentTransaction entity = mapper.toEntity(req);
+        entity.setId(id);
+        PaymentTransactionResponse response = mapper.toResponse(sp.payments().update(id, entity));
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction updated successfully", response));
+    }
+
+    // DELETE /api/payment_transactions/delete/{id}
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+        sp.payments().deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction deleted successfully", null));
+    }
 }

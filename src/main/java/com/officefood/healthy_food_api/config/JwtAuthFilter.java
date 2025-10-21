@@ -2,8 +2,7 @@ package com.officefood.healthy_food_api.config;
 
 import com.officefood.healthy_food_api.service.JwtService;
 import com.officefood.healthy_food_api.service.TokenBlacklistService;
-
-import com.officefood.healthy_food_api.service.UserDetailsServiceImpl;
+import com.officefood.healthy_food_api.service.impl.UserServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +21,7 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
-    private final UserDetailsServiceImpl userDetailsService;
+    private final UserServiceImpl userService;
 
     private static final List<String> PUBLIC_PATHS = List.of(
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**", "/webjars/**",
@@ -30,10 +29,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     );
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    public JwtAuthFilter(JwtService jwtService, TokenBlacklistService tokenBlacklistService, UserDetailsServiceImpl uds) {
+    public JwtAuthFilter(JwtService jwtService, TokenBlacklistService tokenBlacklistService, UserServiceImpl userService) {
         this.jwtService = jwtService;
         this.tokenBlacklistService = tokenBlacklistService;
-        this.userDetailsService = uds;
+        this.userService = userService;
     }
 
     @Override
@@ -52,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (!tokenBlacklistService.isBlacklisted(token)) {
                 try {
                     String username = jwtService.extractUsername(token);
-                    var userDetails = userDetailsService.loadUserByUsername(username);
+                    var userDetails = userService.loadUserByUsername(username);
                     if (jwtService.isTokenValid(token, userDetails)) {
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());

@@ -32,7 +32,7 @@ public class RegisterRequest {
     @Schema(example = "P@ssw0rd!")
     @JsonProperty("password")
     @NotBlank
-    @Size(min = 6, max = 100)
+    @Size(min = 1, max = 100)
     private String password;
 
     @Schema(example = "LOSE_WEIGHT")

@@ -1,10 +1,13 @@
 package com.officefood.healthy_food_api.service.impl;
+
 import com.officefood.healthy_food_api.model.BowlItem;
 import com.officefood.healthy_food_api.repository.BowlItemRepository;
 import com.officefood.healthy_food_api.service.BowlItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -13,7 +16,10 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
     private final BowlItemRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<BowlItem, java.util.UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<BowlItem, UUID> repo() {
         return repository;
     }
+
+    @Override public void changeQuantity(UUID bowlItemId, int qty) { repository.findById(bowlItemId).orElseThrow(); /* TODO */ }
+
 }

@@ -1,5 +1,7 @@
 package com.officefood.healthy_food_api.controller;
+
 import com.officefood.healthy_food_api.dto.request.OrderRequest;
+import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.OrderResponse;
 import com.officefood.healthy_food_api.mapper.OrderMapper;
 import com.officefood.healthy_food_api.model.Order;
@@ -8,33 +10,95 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.*; import java.util.stream.Collectors;
 
-@RestController @RequestMapping("/api/orders") @RequiredArgsConstructor
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/orders")
+@RequiredArgsConstructor
 public class OrderController {
     private final ServiceProvider sp;
     private final OrderMapper mapper;
 
-    @GetMapping("/getall") public List<OrderResponse> list() {
-        return sp.orders().findAll().stream().map(mapper::toResponse).collect(Collectors.toList());
-    }
-    @GetMapping("/getbyid") public ResponseEntity<OrderResponse> get(@PathVariable java.util.UUID id) {
-        return sp.orders().findById(id).map(mapper::toResponse).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-    @PostMapping("/create") public OrderResponse create(@Valid @RequestBody OrderRequest req) {
-        return mapper.toResponse(sp.orders().create(mapper.toEntity(req)));
-    }
-    @PutMapping("/update") public OrderResponse update(@PathVariable java.util.UUID id, @Valid @RequestBody OrderRequest req) {
-        Order e = mapper.toEntity(req); e.setId(id); return mapper.toResponse(sp.orders().update(id, e));
-    }
-    @DeleteMapping("/delete") public ResponseEntity<Void> delete(@PathVariable java.util.UUID id) {
-        sp.orders().deleteById(id); return ResponseEntity.noContent().build();
+    // GET /api/orders/getall
+    @GetMapping("/getall")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll() {
+        List<OrderResponse> orders = sp.orders()
+                 .findAll()
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", orders));
     }
 
-    @PostMapping("/{id}/recalc") public OrderResponse recalc(@PathVariable java.util.UUID id) { return mapper.toResponse(sp.orders().recalcTotals(id)); }
-    @PostMapping("/{id}/apply-promo") public OrderResponse apply(@PathVariable java.util.UUID id, @RequestParam String code) { return mapper.toResponse(sp.orders().applyPromotion(id, code)); }
-    @PostMapping("/{id}/confirm") public OrderResponse confirm(@PathVariable java.util.UUID id) { return mapper.toResponse(sp.orders().confirm(id)); }
-    @PostMapping("/{id}/cancel") public OrderResponse cancel(@PathVariable java.util.UUID id, @RequestParam(required=false) String reason) { return mapper.toResponse(sp.orders().cancel(id, reason)); }
-    @PostMapping("/{id}/complete") public OrderResponse complete(@PathVariable java.util.UUID id) { return mapper.toResponse(sp.orders().complete(id)); }
+    // GET /api/orders/getbyid/{id}
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getById(@PathVariable UUID id) {
+        return sp.orders()
+                 .findById(id)
+                 .map(mapper::toResponse)
+                 .map(order -> ResponseEntity.ok(ApiResponse.success(200, "Order retrieved successfully", order)))
+                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Order not found")));
+    }
 
+    // POST /api/orders/create
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<OrderResponse>> create(@Valid @RequestBody OrderRequest req) {
+        OrderResponse response = mapper.toResponse(sp.orders().create(mapper.toEntity(req)));
+        return ResponseEntity.ok(ApiResponse.success(201, "Order created successfully", response));
+    }
+
+    // PUT /api/orders/update/{id}
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> update(@PathVariable UUID id,
+                              @Valid @RequestBody OrderRequest req) {
+        Order entity = mapper.toEntity(req);
+        entity.setId(id);
+        OrderResponse response = mapper.toResponse(sp.orders().update(id, entity));
+        return ResponseEntity.ok(ApiResponse.success(200, "Order updated successfully", response));
+    }
+
+    // DELETE /api/orders/delete/{id}
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+        sp.orders().deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success(200, "Order deleted successfully", null));
+    }
+
+    // POST /api/orders/recalc/{id}
+    @PostMapping("/recalc/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> recalc(@PathVariable UUID id) {
+        OrderResponse response = mapper.toResponse(sp.orders().recalcTotals(id));
+        return ResponseEntity.ok(ApiResponse.success(200, "Order totals recalculated successfully", response));
+    }
+
+    // POST /api/orders/apply-promo/{id}?code=...
+    @PostMapping("/apply-promo/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> applyPromo(@PathVariable UUID id, @RequestParam String code) {
+        OrderResponse response = mapper.toResponse(sp.orders().applyPromotion(id, code));
+        return ResponseEntity.ok(ApiResponse.success(200, "Promotion applied successfully", response));
+    }
+
+    // POST /api/orders/confirm/{id}
+    @PostMapping("/confirm/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable UUID id) {
+        OrderResponse response = mapper.toResponse(sp.orders().confirm(id));
+        return ResponseEntity.ok(ApiResponse.success(200, "Order confirmed successfully", response));
+    }
+
+    // POST /api/orders/cancel/{id}?reason=...
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancel(@PathVariable UUID id, @RequestParam(required=false) String reason) {
+        OrderResponse response = mapper.toResponse(sp.orders().cancel(id, reason));
+        return ResponseEntity.ok(ApiResponse.success(200, "Order cancelled successfully", response));
+    }
+
+    // POST /api/orders/complete/{id}
+    @PostMapping("/complete/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> complete(@PathVariable UUID id) {
+        OrderResponse response = mapper.toResponse(sp.orders().complete(id));
+        return ResponseEntity.ok(ApiResponse.success(200, "Order completed successfully", response));
+    }
 }

@@ -1,21 +1,33 @@
 package com.officefood.healthy_food_api.repository;
 
 import com.officefood.healthy_food_api.model.Order;
-import com.officefood.healthy_food_api.model.enums.OrderStatus;
-import org.springframework.data.jpa.repository.*;
+import com.officefood.healthy_food_api.repository.base.UuidJpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import jakarta.persistence.LockModeType;
-import java.time.OffsetDateTime;
-import java.util.*;
 
-public interface OrderRepository extends JpaRepository<Order, java.util.UUID>, OrderRepositoryCustom {
-    List<Order> findByUserIdAndStatusIn(java.util.UUID userId, Collection<OrderStatus> statuses);
-    List<Order> findByPlacedAtBetween(OffsetDateTime from, OffsetDateTime to);
+import java.util.UUID;
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select o from Order o where o.id = :id")
-    Optional<Order> findByIdForUpdate(@Param("id") java.util.UUID id);
+public interface OrderRepository extends UuidJpaRepository<Order> {
 
-    @Query("select o from Order o where o.user.id = :uid and o.status in (:st) order by o.placedAt desc")
-    List<Order> listActiveByUser(@Param("uid") java.util.UUID userId, @Param("st") Collection<OrderStatus> statuses);
+    @Query("""
+           select coalesce(sum(bi.quantity * bi.unitPrice), 0)
+           from BowlItem bi
+           where bi.bowl.order.id = :orderId
+           """)
+    long calcSubtotal(@Param("orderId") UUID orderId);
+
+    @Query("""
+           select coalesce(sum(
+               case 
+                   when pr.promotion.type = com.officefood.healthy_food_api.model.enums.PromotionType.PERCENT_OFF 
+                   then (pr.order.subtotalAmount * pr.promotion.percentOff / 100)
+                   when pr.promotion.type = com.officefood.healthy_food_api.model.enums.PromotionType.AMOUNT_OFF 
+                   then pr.promotion.amountOff
+                   else 0
+               end
+           ), 0)
+           from PromotionRedemption pr
+           where pr.order.id = :orderId and pr.status = com.officefood.healthy_food_api.model.enums.RedemptionStatus.APPLIED
+           """)
+    long calcTotalDiscount(@Param("orderId") UUID orderId);
 }

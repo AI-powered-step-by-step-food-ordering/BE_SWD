@@ -1,34 +1,69 @@
 package com.officefood.healthy_food_api.controller;
+
 import com.officefood.healthy_food_api.dto.request.TemplateStepRequest;
+import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.TemplateStepResponse;
 import com.officefood.healthy_food_api.mapper.TemplateStepMapper;
 import com.officefood.healthy_food_api.model.TemplateStep;
-import com.officefood.healthy_food_api.service.TemplateStepService;
+import com.officefood.healthy_food_api.provider.ServiceProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-import java.util.*; import java.util.stream.Collectors;
 
-@RestController @RequestMapping("/api/templateSteps") @RequiredArgsConstructor
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/api/template_steps")
+@RequiredArgsConstructor
 public class TemplateStepController {
-    private final TemplateStepService service;
+    private final ServiceProvider sp;
     private final TemplateStepMapper mapper;
 
-    @GetMapping("/getall") public List<TemplateStepResponse> list() {
-        return service.findAll().stream().map(mapper::toResponse).collect(Collectors.toList());
-    }
-    @GetMapping("/getbyid") public ResponseEntity<TemplateStepResponse> get(@PathVariable java.util.UUID id) {
-        return service.findById(id).map(mapper::toResponse).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-    @PostMapping("/create") public TemplateStepResponse create(@Valid @RequestBody TemplateStepRequest req) {
-        return mapper.toResponse(service.create(mapper.toEntity(req)));
-    }
-    @PutMapping("/update") public TemplateStepResponse update(@PathVariable java.util.UUID id, @Valid @RequestBody TemplateStepRequest req) {
-        TemplateStep e = mapper.toEntity(req); e.setId(id); return mapper.toResponse(service.update(id, e));
-    }
-    @DeleteMapping("/delete") public ResponseEntity<Void> delete(@PathVariable java.util.UUID id) {
-        service.deleteById(id); return ResponseEntity.noContent().build();
+    // GET /api/template_steps/getall
+    @GetMapping("/getall")
+    public ResponseEntity<ApiResponse<List<TemplateStepResponse>>> getAll() {
+        List<TemplateStepResponse> templateSteps = sp.templateSteps()
+                 .findAll()
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Template steps retrieved successfully", templateSteps));
     }
 
+    // GET /api/template_steps/getbyid/{id}
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<ApiResponse<TemplateStepResponse>> getById(@PathVariable UUID id) {
+        return sp.templateSteps()
+                 .findById(id)
+                 .map(mapper::toResponse)
+                 .map(templateStep -> ResponseEntity.ok(ApiResponse.success(200, "Template step retrieved successfully", templateStep)))
+                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Template step not found")));
+    }
+
+    // POST /api/template_steps/create
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<TemplateStepResponse>> create(@Valid @RequestBody TemplateStepRequest req) {
+        TemplateStepResponse response = mapper.toResponse(sp.templateSteps().create(mapper.toEntity(req)));
+        return ResponseEntity.ok(ApiResponse.success(201, "Template step created successfully", response));
+    }
+
+    // PUT /api/template_steps/update/{id}
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ApiResponse<TemplateStepResponse>> update(@PathVariable UUID id,
+                              @Valid @RequestBody TemplateStepRequest req) {
+        TemplateStep entity = mapper.toEntity(req);
+        entity.setId(id);
+        TemplateStepResponse response = mapper.toResponse(sp.templateSteps().update(id, entity));
+        return ResponseEntity.ok(ApiResponse.success(200, "Template step updated successfully", response));
+    }
+
+    // DELETE /api/template_steps/delete/{id}
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+        sp.templateSteps().deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success(200, "Template step deleted successfully", null));
+    }
 }

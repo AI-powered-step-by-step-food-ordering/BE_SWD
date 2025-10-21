@@ -25,7 +25,7 @@ public class AuthController {
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
     @Operation(summary = "Đăng ký", requestBody = @RequestBody(required = true,
             content = @Content(schema = @Schema(implementation = RegisterRequest.class))))
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@org.springframework.web.bind.annotation.RequestBody RegisterRequest req) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @org.springframework.web.bind.annotation.RequestBody RegisterRequest req) {
         var result = auth.register(req);
         return ResponseEntity.ok(ApiResponse.success(200, "Registered successfully", result));
     }
@@ -42,5 +42,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader(value = "Authorization", required = false) String bearer) {
         auth.logout(bearer);
         return ResponseEntity.ok(ApiResponse.success(200, "Logged out", null));
+    }
+
+    @PostMapping(value = "/refresh", consumes = "application/json", produces = "application/json")
+    @Operation(summary = "Làm mới token", requestBody = @RequestBody(required = true,
+            content = @Content(schema = @Schema(implementation = RefreshTokenRequest.class))))
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @org.springframework.web.bind.annotation.RequestBody RefreshTokenRequest req) {
+        var result = auth.refreshToken(req);
+        return ResponseEntity.ok(ApiResponse.success(200, "Token refreshed successfully", result));
     }
 }

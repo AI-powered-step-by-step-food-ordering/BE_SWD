@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.service.impl;
 import com.officefood.healthy_food_api.dto.AuthResponse;
 import com.officefood.healthy_food_api.dto.LoginRequest;
 import com.officefood.healthy_food_api.dto.RegisterRequest;
+import com.officefood.healthy_food_api.dto.RefreshTokenRequest;
 import com.officefood.healthy_food_api.exception.AppException;
 import com.officefood.healthy_food_api.exception.ErrorCode;
 import com.officefood.healthy_food_api.model.User;
@@ -42,18 +43,32 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS, "Email already registered");
         }
 
-        // Temporarily disable confirm check as requested
+        // Create new user
         User user = new User();
         user.setFullName(req.getFullName());
         user.setEmail(req.getEmail());
         user.setGoalCode(req.getGoalCode());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole(req.getRole());
+
+        // Set password hash
+        String hashedPassword = passwordEncoder.encode(req.getPassword());
+        user.setPasswordHash(hashedPassword);
+
+        // Set default role if not provided
+        user.setRole(req.getRole() != null ? req.getRole() : com.officefood.healthy_food_api.model.enums.Role.USER);
         user.setCreatedAt(OffsetDateTime.now());
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token, "Bearer", user.getEmail(), user.getFullName());
+        String accessToken = jwtService.generateToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return new AuthResponse(
+            accessToken,
+            refreshToken,
+            "Bearer",
+            user.getEmail(),
+            user.getFullName(),
+            jwtService.getAccessTokenExpiration()
+        );
     }
 
     @Override
@@ -61,11 +76,50 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest req) {
         User user = userRepository.findByEmail(req.email())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "User not found"));
-        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
             throw new AppException(ErrorCode.INVALID_CREDENTIALS, "Invalid credentials");
         }
-        String token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token, "Bearer", user.getEmail(), user.getFullName());
+
+        String accessToken = jwtService.generateToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return new AuthResponse(
+            accessToken,
+            refreshToken,
+            "Bearer",
+            user.getEmail(),
+            user.getFullName(),
+            jwtService.getAccessTokenExpiration()
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(RefreshTokenRequest req) {
+        try {
+            String username = jwtService.extractUsername(req.refreshToken());
+
+            if (!jwtService.isRefreshTokenValid(req.refreshToken(), username)) {
+                throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid refresh token");
+            }
+
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND, "User not found"));
+
+            String newAccessToken = jwtService.generateToken(user.getEmail());
+            String newRefreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            return new AuthResponse(
+                newAccessToken,
+                newRefreshToken,
+                "Bearer",
+                user.getEmail(),
+                user.getFullName(),
+                jwtService.getAccessTokenExpiration()
+            );
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid refresh token");
+        }
     }
 
     @Override

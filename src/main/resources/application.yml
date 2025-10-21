@@ -15,6 +15,7 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:change-this-to-a-long-random-secret}
     expiration-ms: ${APP_JWT_EXPIRATION_MS:86400000}
+    refresh-expiration-ms: ${APP_JWT_REFRESH_EXPIRATION_MS:604800000}
   swagger:
     enabled: true
 
@@ -41,4 +42,3 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.officefood.healthy_food_api: DEBUG
-
