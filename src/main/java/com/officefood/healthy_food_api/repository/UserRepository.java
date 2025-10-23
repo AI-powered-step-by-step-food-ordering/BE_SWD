@@ -9,4 +9,6 @@ public interface UserRepository extends UuidJpaRepository<User> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+    
+    Optional<User> findByEmailVerificationToken(String token);
 }

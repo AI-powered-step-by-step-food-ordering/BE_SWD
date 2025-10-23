@@ -47,6 +47,15 @@ public class User {
     @Column(name = "status", nullable = false, length = 20)
     private AccountStatus status = AccountStatus.ACTIVE;
 
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+
+    @Column(name = "email_verification_token", length = 255)
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_expiry")
+    private OffsetDateTime emailVerificationExpiry;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
 

@@ -18,6 +18,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(1005, HttpStatus.NOT_FOUND, "User not found"),
     INVALID_CREDENTIALS(1006, HttpStatus.UNAUTHORIZED, "Invalid credentials"),
     DATABASE_ERROR(1007, HttpStatus.INTERNAL_SERVER_ERROR, "Database error"),
+    EMAIL_ALREADY_VERIFIED(1008, HttpStatus.BAD_REQUEST, "Email already verified"),
+    EMAIL_SENDING_FAILED(1009, HttpStatus.INTERNAL_SERVER_ERROR, "Failed to send email"),
+    TOKEN_EXPIRED(1010, HttpStatus.BAD_REQUEST, "Token has expired"),
     UNCATEGORIZED_EXCEPTION(9999, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
 
     private final int code;

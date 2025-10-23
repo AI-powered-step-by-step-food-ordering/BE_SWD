@@ -35,6 +35,12 @@ public class RegisterRequest {
     @Size(min = 1, max = 100)
     private String password;
 
+    @Schema(example = "P@ssw0rd!")
+    @JsonProperty("passwordConfirm")
+    @NotBlank
+    @Size(min = 1, max = 100)
+    private String passwordConfirm;
+
     @Schema(example = "LOSE_WEIGHT")
     @JsonProperty("goalCode")
     @Size(max = 50)
