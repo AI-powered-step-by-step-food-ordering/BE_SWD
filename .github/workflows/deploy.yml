@@ -1,4 +1,4 @@
-name: Deploy to Ubuntu Server
+name: Deploy Java Spring Boot App
 
 on:
   push:
@@ -13,36 +13,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '21'
+          distribution: 'temurin'
 
-      - name: Build JAR
-        run: mvn clean package -DskipTests
+      - name: Build project
+        run: |
+          ./mvnw clean package -DskipTests=true
 
-      - name: Upload JAR to Server
+      - name: Copy JAR to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: morbious
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 4455
           source: "target/healthy-food-api-0.0.1-SNAPSHOT.jar"
-          target: "/home/morbious/Food/app.jar"
+          target: "/home/morbious/Food/app.jar/target/"
 
-      - name: Restart App on Server
+      - name: Run app on server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
+          username: morbious
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 4455
           script: |
-            cd /home/morbious/Food
-            echo "Killing old process..."
+            echo "Stopping old app if running..."
             pkill -f "java -jar" || true
+
             echo "Starting new app..."
-            nohup java -jar app.jar > app.log 2>&1 &
-            echo "✅ App restarted successfully!"
+            cd /home/morbious/Food/app.jar/target
+            nohup java -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+
+            echo "✅ App started successfully"
