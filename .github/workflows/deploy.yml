@@ -35,15 +35,6 @@ jobs:
           target: "/home/morbious/Food/app.jar/target/"
 
       - name: Run app on server
-      
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: morbious
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 4455
-          
-      - name: Run app on server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -51,17 +42,25 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 4455
           script_stop: false
+          command_timeout: 10m
           script: |
-            set +e  # Không dừng script nếu gặp lỗi
+            set +e
+            trap '' TERM
 
             echo "🧹 Stopping old app if running..."
-            pkill -f "java -jar" || true
+            PIDS=$(pgrep -f "java -jar")
+            if [ -n "$PIDS" ]; then
+              echo "Killing PIDs: $PIDS"
+              kill -9 $PIDS || true
+              sleep 2
+            else
+              echo "No running app found."
+            fi
 
             echo "🚀 Starting new app..."
-            cd /home/morbious/Food/app.jar/target
-            nohup java -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & disown
+            cd /home/morbious/Food/app.jar/target || exit 0
+            nohup setsid java -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & disown || true
 
             sleep 5
             echo "✅ App started successfully"
-
-            exit 0  # Luôn trả về 0 để GitHub Action coi là thành công
+            exit 0
