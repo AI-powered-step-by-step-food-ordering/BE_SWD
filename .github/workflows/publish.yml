@@ -20,9 +20,21 @@ jobs:
       with:
         distribution: 'temurin'
         java-version: '21'
-        server-id: github
-        server-username: GITHUB_ACTOR
-        server-password: ${{ secrets.TOKEN }}
+
+    - name: Configure Maven settings.xml
+      run: |
+        mkdir -p ~/.m2
+        cat <<EOF > ~/.m2/settings.xml
+        <settings>
+          <servers>
+            <server>
+              <id>github</id>
+              <username>${{ github.actor }}</username>
+              <password>${{ secrets.TOKEN }}</password>
+            </server>
+          </servers>
+        </settings>
+        EOF
 
     - name: Build and publish package
       run: mvn -B clean deploy --file pom.xml
