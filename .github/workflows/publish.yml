@@ -22,7 +22,7 @@ jobs:
         java-version: '21'
         server-id: github
         server-username: GITHUB_ACTOR
-        server-password: ${{ secrets.GITHUB_TOKEN }}
+        server-password: ${{ secrets.TOKEN }}
 
     - name: Build and publish package
       run: mvn -B clean deploy --file pom.xml
