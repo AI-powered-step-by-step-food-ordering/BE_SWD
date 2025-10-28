@@ -3,14 +3,13 @@ name: Deploy to Ubuntu Server
 on:
   push:
     branches:
-      - main  # hoặc branch bạn muốn deploy
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Clone repo
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -46,4 +45,4 @@ jobs:
             pkill -f "java -jar" || true
             echo "Starting new app..."
             nohup java -jar app.jar > app.log 2>&1 &
-            echo "✅ App restarted!"
+            echo "✅ App restarted successfully!"
