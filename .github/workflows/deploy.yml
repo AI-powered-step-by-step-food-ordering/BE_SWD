@@ -43,35 +43,37 @@ jobs:
           port: 4455
           script_stop: false
           command_timeout: 10m
+          
+      - name: Run app on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: morbious
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 4455
+          script_stop: false
+          command_timeout: 10m
           script: |
             set +e
             trap '' TERM
 
             echo "🧹 Stopping old app on port 8080 (if any)..."
-            # Cách 1: dùng fuser (psmisc). Hầu hết Ubuntu có sẵn.
             if command -v fuser >/dev/null 2>&1; then
               fuser -k -n tcp 8080 || true
             else
-              echo "fuser not found, using ss to locate PID..."
               PIDS=$(ss -lptn 'sport = :8080' 2>/dev/null | awk -F',' '/pid=/ {gsub("pid=",""); print $2}' | awk '{print $1}')
-              if [ -n "$PIDS" ]; then
-                echo "Killing PIDs on 8080: $PIDS"
-                kill -9 $PIDS || true
-              else
-                echo "No process is listening on 8080."
-              fi
+              [ -n "$PIDS" ] && kill -9 $PIDS || true
             fi
 
-            sleep 2
+            # Lấy đường dẫn tuyệt đối tới java
+            JAVA_BIN=$(command -v java || echo /usr/bin/java)
+            echo "Using JAVA_BIN=$JAVA_BIN"
 
             echo "🚀 Starting new app..."
             cd /home/morbious/Food/app.jar/target || exit 0
-            # detach hoàn toàn khỏi SSH session
-            nohup setsid java -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & disown || true
+            nohup setsid "$JAVA_BIN" -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & disown || true
 
-            # chờ vài giây cho app mở port
             sleep 6
-
             echo "🔎 Verifying process..."
             ps -ef | grep "[j]ava -jar" || true
 
