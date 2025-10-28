@@ -1,4 +1,4 @@
-name: Deploy Spring Boot to Ubuntu (morbious server)
+name: Deploy Spring Boot to Ubuntu
 
 on:
   push:
