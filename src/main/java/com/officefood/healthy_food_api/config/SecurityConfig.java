@@ -40,6 +40,11 @@ public class SecurityConfig {
                         .requestMatchers("/", "/health", "/actuator/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        // Temporary public access for testing
+                        .requestMatchers(HttpMethod.GET, "/api/stores/getall", "/api/stores/getbyid/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/stores/create").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/ingredients/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
