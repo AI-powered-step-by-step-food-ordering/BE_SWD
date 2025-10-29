@@ -18,6 +18,8 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://127.0.0.1:3000", // Alternative localhost
                         "http://127.0.0.1:3001", // Alternative localhost
                         "http://127.0.0.1:5173", // Alternative localhost
+                        "http://cinezone.info:4458", // Swagger UI access
+                        "https://cinezone.info:4458", // HTTPS version
                         "https://*.vercel.app"   // Vercel deployments
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
