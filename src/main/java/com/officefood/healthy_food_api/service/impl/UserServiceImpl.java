@@ -27,6 +27,9 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
         var u = repository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // Check if account is active using the new method
+        boolean isAccountEnabled = u.isAccountActive();
+
         String authority = switch (u.getRole()) {
             case ADMIN -> "ROLE_ADMIN";
             default -> "ROLE_USER";
@@ -36,12 +39,13 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
                 .password(u.getPasswordHash())
                 .authorities(authority)
                 .accountLocked(false)
-                .disabled(false)
+                .disabled(!isAccountEnabled) // Disabled if account is not active
                 .build();
     }
 
-    @Override public void changePassword(UUID userId, String rawPassword) { repository.findById(userId).orElseThrow(); /* TODO */ }
-    @Override public void suspend(UUID userId) { repository.findById(userId).orElseThrow(); /* TODO */ }
-    @Override public void activate(UUID userId) { repository.findById(userId).orElseThrow(); /* TODO */ }
-
+    @Override
+    public void changePassword(UUID userId, String rawPassword) {
+        repository.findById(userId).orElseThrow();
+        /* TODO */
+    }
 }

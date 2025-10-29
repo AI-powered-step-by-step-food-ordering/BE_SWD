@@ -29,7 +29,7 @@ public interface UserMapper {
     @Mapping(target = "emailVerificationExpiry", ignore = true)
     @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "role", ignore = true)
-    @Mapping(target = "status", expression = "java(req.getStatus() != null ? AccountStatus.valueOf(req.getStatus()) : null)")
+    @Mapping(target = "status", ignore = true)
     User toEntityFromUpdateRequest(com.officefood.healthy_food_api.dto.request.UserUpdateRequest req);
 
     UserResponse toResponse(User entity);

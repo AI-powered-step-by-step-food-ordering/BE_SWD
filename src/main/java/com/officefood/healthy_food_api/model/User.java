@@ -5,7 +5,6 @@ import com.officefood.healthy_food_api.model.enums.Role;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UuidGenerator;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -63,4 +62,60 @@ public class User extends BaseEntity {
 
     @OneToMany(mappedBy = "assignedUser")
     private Set<KitchenJob> assignedJobs = new HashSet<>();
+
+    /**
+     * Override getIsActive to compute from status (not persisted in DB)
+     * User table doesn't have is_active column
+     */
+    @Override
+    @Transient
+    public Boolean getIsActive() {
+        return this.status == AccountStatus.ACTIVE;
+    }
+
+    /**
+     * Override setIsActive to update status instead
+     * Since is_active is not persisted for User, we update status
+     */
+    @Override
+    public void setIsActive(Boolean isActive) {
+        if (Boolean.TRUE.equals(isActive)) {
+            this.status = AccountStatus.ACTIVE;
+        } else {
+            // When setting to inactive, mark as DELETED
+            this.status = AccountStatus.DELETED;
+        }
+    }
+
+    /**
+     * Override setStatus - no need to sync isActive since it's computed
+     */
+    public void setStatus(AccountStatus status) {
+        this.status = status;
+    }
+
+    /**
+     * Override softDelete to set status to DELETED
+     */
+    @Override
+    public void softDelete() {
+        this.status = AccountStatus.DELETED;
+        this.setDeletedAt(java.time.ZonedDateTime.now());
+    }
+
+    /**
+     * Override restore to set status to ACTIVE
+     */
+    @Override
+    public void restore() {
+        this.status = AccountStatus.ACTIVE;
+        this.setDeletedAt(null);
+    }
+
+    /**
+     * Check if user account is truly active (both isActive and status)
+     */
+    public boolean isAccountActive() {
+        return this.status == AccountStatus.ACTIVE && this.getDeletedAt() == null;
+    }
 }

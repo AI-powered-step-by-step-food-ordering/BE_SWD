@@ -38,6 +38,56 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
         return mapper.toEntity(request);
     }
 
+    /**
+     * Override getAllActive() from BaseController
+     * User entity checks status = ACTIVE instead of isActive
+     * GET /api/users/active
+     */
+    @Override
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<java.util.List<UserResponse>>> getAllActive() {
+        java.util.List<UserResponse> responses = sp.users()
+                .findAll()
+                .stream()
+                .filter(User::isAccountActive) // Check status = ACTIVE and deletedAt = null
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active users successfully", responses));
+    }
+
+    /**
+     * Override getAllInactive() from BaseController
+     * User entity checks status != ACTIVE instead of isActive
+     * GET /api/users/inactive
+     */
+    @Override
+    @GetMapping("/inactive")
+    public ResponseEntity<ApiResponse<java.util.List<UserResponse>>> getAllInactive() {
+        java.util.List<UserResponse> responses = sp.users()
+                .findAll()
+                .stream()
+                .filter(user -> !user.isAccountActive()) // Check status != ACTIVE or deletedAt != null
+                .map(mapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive users successfully", responses));
+    }
+
+    /**
+     * Override getById() from BaseController
+     * User entity checks isAccountActive() instead of isActive
+     * GET /api/users/getbyid/{id}
+     */
+    @Override
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
+        return sp.users()
+                .findById(id)
+                .filter(User::isAccountActive)
+                .map(mapper::toResponse)
+                .map(response -> ResponseEntity.ok(ApiResponse.success(200, "User retrieved successfully", response)))
+                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found or inactive")));
+    }
+
     // POST /api/users/create
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<UserResponse>> create(@Valid @RequestBody UserRequest req) {
@@ -59,22 +109,14 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
             existingUser.setEmail(req.getEmail());
             existingUser.setGoalCode(req.getGoalCode());
 
-            // Update status if provided - with validation
-            if (req.getStatus() != null && !req.getStatus().trim().isEmpty()) {
-                try {
-                    existingUser.setStatus(com.officefood.healthy_food_api.model.enums.AccountStatus.valueOf(req.getStatus().toUpperCase()));
-                } catch (IllegalArgumentException e) {
-                    return ResponseEntity.ok(ApiResponse.error(400, "INVALID_STATUS",
-                        "Invalid status. Must be one of: ACTIVE, SUSPENDED, DELETED, PENDING_VERIFICATION"));
-                }
-            }
-
             // Update imageUrl if provided
             if (req.getImageUrl() != null) {
                 existingUser.setImageUrl(req.getImageUrl());
             }
 
-            // Password and Role are NOT updated (preserved automatically)
+            // Password, Role, and Status are NOT updated here
+            // Use /soft-delete/{id} to delete (set status = DELETED)
+            // Use /restore/{id} to restore (set status = ACTIVE)
 
             UserResponse response = mapper.toResponse(sp.users().update(id, existingUser));
             return ResponseEntity.ok(ApiResponse.success(200, "User updated successfully", response));
@@ -82,5 +124,62 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
             return ResponseEntity.ok(ApiResponse.error(500, "UPDATE_FAILED",
                 "Failed to update user: " + e.getMessage()));
         }
+    }
+
+
+    // GET /api/users/{id}/status - Check user account status
+    @GetMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<Object>> checkUserStatus(@PathVariable UUID id) {
+        try {
+            User user = sp.users().findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            var statusInfo = new java.util.HashMap<String, Object>();
+            statusInfo.put("status", user.getStatus().toString());
+            statusInfo.put("isActive", user.getIsActive());
+            statusInfo.put("isAccountActive", user.isAccountActive());
+            statusInfo.put("deletedAt", user.getDeletedAt());
+
+            return ResponseEntity.ok(ApiResponse.success(200, "User status retrieved", statusInfo));
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.error(500, "STATUS_CHECK_FAILED",
+                "Failed to check user status: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Override restore() from BaseController
+     * User entity uses 'status' enum instead of 'isActive' boolean
+     * PUT /api/users/restore/{id}
+     */
+    @Override
+    @PutMapping("/restore/{id}")
+    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable UUID id) {
+        return sp.users().findById(id)
+                .map(user -> {
+                    // User-specific restore: set status = ACTIVE and clear deletedAt
+                    user.restore(); // This sets status=ACTIVE, deletedAt=null
+                    sp.users().update(id, user);
+                    return ResponseEntity.ok(ApiResponse.<Void>success(200, "User restored successfully", null));
+                })
+                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found")));
+    }
+
+    /**
+     * Override softDelete() from BaseController
+     * User entity uses 'status' enum instead of 'isActive' boolean
+     * PUT /api/users/soft-delete/{id}
+     */
+    @Override
+    @PutMapping("/soft-delete/{id}")
+    public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable UUID id) {
+        return sp.users().findById(id)
+                .map(user -> {
+                    // User-specific soft delete: set status = DELETED and set deletedAt
+                    user.softDelete(); // This sets status=DELETED, deletedAt=now
+                    sp.users().update(id, user);
+                    return ResponseEntity.ok(ApiResponse.<Void>success(200, "User soft deleted successfully", null));
+                })
+                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found")));
     }
 }

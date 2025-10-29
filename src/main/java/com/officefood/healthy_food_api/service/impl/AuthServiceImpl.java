@@ -118,8 +118,8 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.UNAUTHORIZED); // Email not verified
         }
         
-        // Check if account is active
-        if (user.getStatus() != AccountStatus.ACTIVE) {
+        // Check if account is active (checks both status and isActive)
+        if (!user.isAccountActive()) {
             throw new AppException(ErrorCode.UNAUTHORIZED); // Account not active
         }
 

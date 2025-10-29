@@ -8,7 +8,7 @@ public class UserUpdateRequest {
     @NotBlank private String fullName;
     @NotBlank private String email;
     private String goalCode;
-    private String status;
     private String imageUrl; // Avatar/profile picture URL
+    // Note: status is not included - use /soft-delete or /restore endpoints
 }
 
