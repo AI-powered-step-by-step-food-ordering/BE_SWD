@@ -21,8 +21,6 @@ public class Category extends BaseEntity {
     @Column(nullable=false, length=30)
     private IngredientKind kind;
 
-    @Column(name="display_order")
-    private Integer displayOrder;
 
     @Column(name="image_url", length=500)
     private String imageUrl;
