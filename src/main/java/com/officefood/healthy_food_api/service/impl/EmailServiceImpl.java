@@ -45,41 +45,66 @@ public class EmailServiceImpl implements EmailService {
     private String supportEmail;
 
     @Override
-    public boolean sendVerificationEmail(String customerName, String customerEmail, String verificationToken) {
+    public boolean sendVerificationOtpEmail(String customerName, String customerEmail, String verificationOtp) {
         try {
-            log.info("🔄 Starting sendVerificationEmail process...");
+            log.info("🔄 Starting sendVerificationOtpEmail process...");
             log.info("📧 Customer Email: {}", customerEmail);
             log.info("👤 Customer Name: {}", customerName);
-            log.info("🔑 Verification Token: {}", verificationToken);
+            log.info("🔢 OTP: {}", verificationOtp);
             log.info("🌐 Website URL: {}", websiteUrl);
             log.info("📨 From Email: {}", fromEmail);
 
-            // Prepare template variables
             Map<String, Object> variables = new HashMap<>();
             variables.put("customerName", customerName);
-            variables.put("verificationToken", verificationToken);
+            variables.put("verificationOtp", verificationOtp);
+            variables.put("otpExpiryMinutes", 10);
             variables.put("websiteUrl", websiteUrl);
             variables.put("companyName", companyName);
             variables.put("supportEmail", supportEmail);
             variables.put("currentYear", LocalDateTime.now().getYear());
 
-            // Create verification link
-            String verificationLink = websiteUrl + "/api/auth/verify-email?token=" + verificationToken;
-            variables.put("verificationLink", verificationLink);
-
-            // Send template email
             boolean result = sendTemplateEmail(
                 customerEmail,
                 "Verify Your Email - " + companyName,
-                "email/verification",
+                "email/verification-otp",
                 variables
             );
 
-            log.info("📬 Template email send result: {}", result);
+            log.info("📬 OTP email send result: {}", result);
             return result;
-
         } catch (Exception e) {
-            log.error("❌ Exception in sendVerificationEmail: {}", e.getMessage(), e);
+            log.error("❌ Exception in sendVerificationOtpEmail: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean sendPasswordResetOtpEmail(String customerName, String customerEmail, String otp) {
+        try {
+            log.info("🔄 Starting sendPasswordResetOtpEmail process...");
+            log.info("📧 Customer Email: {}", customerEmail);
+            log.info("👤 Customer Name: {}", customerName);
+            log.info("🔢 OTP: {}", otp);
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("customerName", customerName);
+            variables.put("otp", otp);
+            variables.put("otpExpiryMinutes", 10);
+            variables.put("websiteUrl", websiteUrl);
+            variables.put("companyName", companyName);
+            variables.put("supportEmail", supportEmail);
+            variables.put("currentYear", LocalDateTime.now().getYear());
+
+            boolean result = sendTemplateEmail(
+                    customerEmail,
+                    "Reset Your Password - " + companyName,
+                    "email/password-reset-otp",
+                    variables
+            );
+            log.info("📬 Password reset OTP email send result: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("❌ Exception in sendPasswordResetOtpEmail: {}", e.getMessage(), e);
             return false;
         }
     }

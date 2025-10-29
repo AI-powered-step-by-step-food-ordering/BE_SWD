@@ -5,12 +5,17 @@ import com.officefood.healthy_food_api.dto.EmailVerificationResponse;
 import com.officefood.healthy_food_api.dto.LoginRequest;
 import com.officefood.healthy_food_api.dto.RefreshTokenRequest;
 import com.officefood.healthy_food_api.dto.RegisterRequest;
+import com.officefood.healthy_food_api.dto.VerifyOtpRequest;
+import com.officefood.healthy_food_api.dto.ForgotPasswordRequest;
+import com.officefood.healthy_food_api.dto.ResetPasswordRequest;
 
 public interface AuthService {
-    LoginResponse register(RegisterRequest req);
+    EmailVerificationResponse register(RegisterRequest req);
     LoginResponse login(LoginRequest req);
     LoginResponse refreshToken(RefreshTokenRequest req);
     void logout(String bearerToken);
-    EmailVerificationResponse verifyEmail(String token);
-    EmailVerificationResponse resendVerificationEmail(String email);
+    EmailVerificationResponse verifyOtp(VerifyOtpRequest request);
+    EmailVerificationResponse resendVerificationOtp(String email);
+    void forgotPassword(ForgotPasswordRequest request);
+    void resetPassword(ResetPasswordRequest request);
 }

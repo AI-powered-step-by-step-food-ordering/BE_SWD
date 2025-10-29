@@ -10,14 +10,18 @@ package com.officefood.healthy_food_api.service;
 public interface EmailService {
 
     /**
-     * Send email verification email
-     * 
-     * @param customerName      customer name
-     * @param customerEmail     customer email
-     * @param verificationToken verification token
+     * Send email verification OTP email
+     * @param customerName  customer name
+     * @param customerEmail customer email
+     * @param verificationOtp 6-digit OTP
      * @return true if email sent successfully
      */
-    boolean sendVerificationEmail(String customerName, String customerEmail, String verificationToken);
+    boolean sendVerificationOtpEmail(String customerName, String customerEmail, String verificationOtp);
+
+    /**
+     * Send password reset OTP email
+     */
+    boolean sendPasswordResetOtpEmail(String customerName, String customerEmail, String otp);
 
     /**
      * Send welcome email for new customers

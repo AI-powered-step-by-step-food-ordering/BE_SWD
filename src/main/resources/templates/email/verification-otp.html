@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification OTP</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f6f9fc; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 24px auto; background: #ffffff; border-radius: 8px; padding: 24px; }
+        .title { font-size: 20px; margin-bottom: 12px; }
+        .otp { font-size: 32px; letter-spacing: 6px; font-weight: bold; color: #0f172a; margin: 16px 0; }
+        .muted { color: #64748b; font-size: 14px; }
+        .footer { margin-top: 24px; color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">Verify your email</div>
+        <div>Hi <strong th:text="${customerName}">Customer</strong>,</div>
+        <p>Use the following OTP to verify your email address:</p>
+        <div class="otp" th:text="${verificationOtp}">123456</div>
+        <div class="muted">This OTP expires in <span th:text="${otpExpiryMinutes}">10</span> minutes.</div>
+        <p>If you didn't request this, you can ignore this email.</p>
+        <div class="footer">&copy; <span th:text="${currentYear}">2025</span> <span th:text="${companyName}">Company</span>. Need help? <a th:href="${'mailto:' + supportEmail}">Contact support</a>.</div>
+    </div>
+</body>
+</html>
+
+

@@ -57,11 +57,23 @@ public class User extends BaseEntity {
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
 
-    @Column(name = "email_verification_token", length = 255)
-    private String emailVerificationToken;
+    @Column(name = "email_verification_otp", length = 6)
+    private String emailVerificationOtp;
 
-    @Column(name = "email_verification_expiry")
-    private OffsetDateTime emailVerificationExpiry;
+    @Column(name = "email_verification_otp_expiry")
+    private OffsetDateTime emailVerificationOtpExpiry;
+
+    @Column(name = "otp_attempts", nullable = false)
+    private Integer otpAttempts = 0;
+
+    @Column(name = "password_reset_otp", length = 6)
+    private String passwordResetOtp;
+
+    @Column(name = "password_reset_otp_expiry")
+    private OffsetDateTime passwordResetOtpExpiry;
+
+    @Column(name = "password_reset_attempts", nullable = false)
+    private Integer passwordResetAttempts = 0;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();

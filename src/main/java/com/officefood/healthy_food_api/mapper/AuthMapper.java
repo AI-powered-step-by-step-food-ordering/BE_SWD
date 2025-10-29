@@ -19,8 +19,9 @@ public interface AuthMapper {
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "assignedJobs", ignore = true)
     @Mapping(target = "emailVerified", ignore = true)
-    @Mapping(target = "emailVerificationToken", ignore = true)
-    @Mapping(target = "emailVerificationExpiry", ignore = true)
+    @Mapping(target = "emailVerificationOtp", ignore = true)
+    @Mapping(target = "emailVerificationOtpExpiry", ignore = true)
+    @Mapping(target = "otpAttempts", ignore = true)
     @Mapping(target = "role", expression = "java(req.getRole() == null ? Role.USER : req.getRole())")
     @Mapping(target = "status", expression = "java(AccountStatus.PENDING_VERIFICATION)")
     User toEntity(RegisterRequest req);

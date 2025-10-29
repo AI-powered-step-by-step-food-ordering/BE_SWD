@@ -2,6 +2,9 @@ package com.officefood.healthy_food_api.service.impl;
 
 import com.officefood.healthy_food_api.dto.LoginResponse;
 import com.officefood.healthy_food_api.dto.EmailVerificationResponse;
+import com.officefood.healthy_food_api.dto.VerifyOtpRequest;
+import com.officefood.healthy_food_api.dto.ForgotPasswordRequest;
+import com.officefood.healthy_food_api.dto.ResetPasswordRequest;
 import com.officefood.healthy_food_api.dto.LoginRequest;
 import com.officefood.healthy_food_api.dto.RegisterRequest;
 import com.officefood.healthy_food_api.dto.RefreshTokenRequest;
@@ -15,6 +18,7 @@ import com.officefood.healthy_food_api.service.AuthService;
 import com.officefood.healthy_food_api.service.EmailService;
 import com.officefood.healthy_food_api.service.JwtService;
 import com.officefood.healthy_food_api.service.TokenBlacklistService;
+import com.officefood.healthy_food_api.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,8 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.Optional;
-import java.util.UUID;
+
+// imports cleaned after removing token-based verification
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +39,12 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
     private final EmailService emailService;
+    private final OtpService otpService;
     private final AuthMapper authMapper;
 
     @Override
     @Transactional
-    public LoginResponse register(RegisterRequest req) {
+    public EmailVerificationResponse register(RegisterRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
@@ -56,55 +61,35 @@ public class AuthServiceImpl implements AuthService {
         String hashedPassword = passwordEncoder.encode(req.getPassword());
         user.setPasswordHash(hashedPassword);
         
-        // Generate email verification token
-        String verificationToken = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(verificationToken);
-        user.setEmailVerificationExpiry(OffsetDateTime.now().plusHours(24));
+        // Generate and set OTP
+        String verificationOtp = otpService.generateOtp();
+        user.setEmailVerificationOtp(verificationOtp);
+        user.setEmailVerificationOtpExpiry(OffsetDateTime.now().plusMinutes(10));
         user.setEmailVerified(false);
-        
+        user.setOtpAttempts(0);
+        user.setStatus(AccountStatus.PENDING_VERIFICATION);
         userRepository.save(user);
 
-        // Send verification email
+        // Send verification OTP email
         try {
             if (emailService != null) {
-                log.info("🔄 Sending verification email to: {}", user.getEmail());
-                boolean emailSent = emailService.sendVerificationEmail(
-                    user.getFullName(),
-                    user.getEmail(),
-                    verificationToken
+                boolean emailSent = emailService.sendVerificationOtpEmail(
+                        user.getFullName(), user.getEmail(), verificationOtp
                 );
-                
-                if (emailSent) {
-                    log.info("✅ Verification email sent successfully to: {}", user.getEmail());
+                if (!emailSent) {
+                    log.error("❌ Failed to send verification OTP email to: {}", user.getEmail());
                 } else {
-                    log.error("❌ Failed to send verification email to: {}", user.getEmail());
+                    log.info("✅ Verification OTP email sent successfully to: {}", user.getEmail());
                 }
-            } else {
-                log.warn("⚠️ EmailService is null - verification email not sent");
             }
         } catch (Exception e) {
-            log.error("❌ Exception while sending verification email: {}", e.getMessage(), e);
-            // Don't fail registration if email sending fails
+            log.error("❌ Exception while sending verification OTP email: {}", e.getMessage(), e);
         }
 
-        // Generate tokens
-        String accessToken = jwtService.generateToken(user.getEmail());
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
-        
-        return new LoginResponse(
-            user.getId(),
-            accessToken,
-            refreshToken,
-            "Bearer",
-            user.getEmail(),
-            user.getFullName(),
-            jwtService.getAccessTokenExpiration(),
-            user.getGoalCode(),
-            user.getRole() != null ? user.getRole().name() : null,
-            user.getImageUrl(),
-            user.getDateOfBirth(),
-            user.getAddress(),
-            user.getPhone()
+        var response = authMapper.toEmailVerificationResponse(user);
+        return new EmailVerificationResponse(
+            response.email(), response.fullName(), response.status(), response.emailVerified(),
+            "Email verification OTP sent"
         );
     }
 
@@ -193,60 +178,51 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public EmailVerificationResponse verifyEmail(String token) {
-        Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
-        
-        if (userOpt.isEmpty()) {
-            log.warn("Verification token not found: {}. User may have already verified their email.", token);
-            throw new AppException(ErrorCode.TOKEN_EXPIRED);
-        }
+    public EmailVerificationResponse verifyOtp(VerifyOtpRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        User user = userOpt.get();
-
-        if (user.getEmailVerificationExpiry().isBefore(OffsetDateTime.now())) {
-            throw new AppException(ErrorCode.TOKEN_EXPIRED);
-        }
-
-        // Check if email already verified
         if (user.getEmailVerified()) {
-            log.info("Email already verified for user: {}", user.getEmail());
-            // Clear token if not already cleared
-            if (user.getEmailVerificationToken() != null) {
-                user.setEmailVerificationToken(null);
-                user.setEmailVerificationExpiry(null);
-                userRepository.save(user);
-            }
             EmailVerificationResponse response = authMapper.toEmailVerificationResponse(user);
             return new EmailVerificationResponse(
-                response.email(),
-                response.fullName(),
-                response.status(),
-                response.emailVerified(),
+                response.email(), response.fullName(), response.status(), response.emailVerified(),
                 "Email already verified"
             );
         }
 
+        if (user.getEmailVerificationOtp() == null ||
+            user.getEmailVerificationOtpExpiry() == null ||
+            user.getEmailVerificationOtpExpiry().isBefore(OffsetDateTime.now())) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        if (user.getOtpAttempts() != null && user.getOtpAttempts() >= 5) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (!otpService.validateOtp(request.otp(), user.getEmailVerificationOtp())) {
+            user.setOtpAttempts((user.getOtpAttempts() == null ? 0 : user.getOtpAttempts()) + 1);
+            userRepository.save(user);
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
         user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        user.setEmailVerificationExpiry(null);
-        user.setStatus(AccountStatus.ACTIVE); // Change status to ACTIVE after verification
+        user.setEmailVerificationOtp(null);
+        user.setEmailVerificationOtpExpiry(null);
+        user.setOtpAttempts(0);
+        user.setStatus(AccountStatus.ACTIVE);
         userRepository.save(user);
 
-        log.info("Email verified successfully for user: {} - Status changed to ACTIVE", user.getEmail());
-        
         EmailVerificationResponse response = authMapper.toEmailVerificationResponse(user);
         return new EmailVerificationResponse(
-            response.email(),
-            response.fullName(),
-            response.status(),
-            response.emailVerified(),
+            response.email(), response.fullName(), response.status(), response.emailVerified(),
             "Email verified successfully"
         );
     }
 
     @Override
     @Transactional
-    public EmailVerificationResponse resendVerificationEmail(String email) {
+    public EmailVerificationResponse resendVerificationOtp(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -254,41 +230,80 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.EMAIL_ALREADY_VERIFIED);
         }
 
-        // Generate new verification token
-        String verificationToken = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(verificationToken);
-        user.setEmailVerificationExpiry(OffsetDateTime.now().plusHours(24));
+        String verificationOtp = otpService.generateOtp();
+        user.setEmailVerificationOtp(verificationOtp);
+        user.setEmailVerificationOtpExpiry(OffsetDateTime.now().plusMinutes(10));
+        user.setOtpAttempts(0);
         userRepository.save(user);
 
-        // Send verification email
         try {
             if (emailService != null) {
-                boolean emailSent = emailService.sendVerificationEmail(
-                    user.getFullName(),
-                    user.getEmail(),
-                    verificationToken
+                boolean emailSent = emailService.sendVerificationOtpEmail(
+                        user.getFullName(), user.getEmail(), verificationOtp
                 );
-                
-                if (emailSent) {
-                    log.info("✅ Verification email resent successfully to: {}", email);
-                } else {
-                    log.error("❌ Failed to resend verification email to: {}", email);
+                if (!emailSent) {
+                    throw new AppException(ErrorCode.EMAIL_SENDING_FAILED);
                 }
-            } else {
-                log.warn("⚠️ EmailService is null - verification email not sent");
             }
         } catch (Exception e) {
-            log.error("❌ Exception while resending verification email: {}", e.getMessage(), e);
             throw new AppException(ErrorCode.EMAIL_SENDING_FAILED);
         }
-        
+
         EmailVerificationResponse response = authMapper.toEmailVerificationResponse(user);
         return new EmailVerificationResponse(
-            response.email(),
-            response.fullName(),
-            response.status(),
-            response.emailVerified(),
-            "Verification email sent successfully"
+                response.email(), response.fullName(), response.status(), response.emailVerified(),
+                "Verification OTP sent successfully"
         );
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        String otp = otpService.generateOtp();
+        user.setPasswordResetOtp(otp);
+        user.setPasswordResetOtpExpiry(OffsetDateTime.now().plusMinutes(10));
+        user.setPasswordResetAttempts(0);
+        userRepository.save(user);
+
+        boolean sent = emailService.sendPasswordResetOtpEmail(user.getFullName(), user.getEmail(), otp);
+        if (!sent) {
+            throw new AppException(ErrorCode.EMAIL_SENDING_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.newPassword().equals(request.passwordConfirm())) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.getPasswordResetOtp() == null ||
+            user.getPasswordResetOtpExpiry() == null ||
+            user.getPasswordResetOtpExpiry().isBefore(OffsetDateTime.now())) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        if (user.getPasswordResetAttempts() != null && user.getPasswordResetAttempts() >= 5) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (!otpService.validateOtp(request.otp(), user.getPasswordResetOtp())) {
+            user.setPasswordResetAttempts((user.getPasswordResetAttempts() == null ? 0 : user.getPasswordResetAttempts()) + 1);
+            userRepository.save(user);
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordResetOtp(null);
+        user.setPasswordResetOtpExpiry(null);
+        user.setPasswordResetAttempts(0);
+        userRepository.save(user);
     }
 }
