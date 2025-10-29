@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.dto.response;
 
 import lombok.*;
+import java.time.ZonedDateTime;
 
 @Data
 public class KitchenJobResponse {
@@ -10,4 +11,5 @@ public class KitchenJobResponse {
     private java.util.UUID assignedUserId;
     private String status;
     private String note;
+    private ZonedDateTime createdAt;
 }

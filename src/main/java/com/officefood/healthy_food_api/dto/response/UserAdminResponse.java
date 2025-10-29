@@ -5,7 +5,7 @@ import java.time.ZonedDateTime;
 import java.time.LocalDate;
 
 @Data
-public class UserResponse {
+public class UserAdminResponse {
     private java.util.UUID id;
     private String fullName;
     private String email;
@@ -16,5 +16,6 @@ public class UserResponse {
     private LocalDate dateOfBirth;
     private String address;
     private String phone;
-    // createdAt removed - only for admin response
+    private ZonedDateTime createdAt;
 }
+

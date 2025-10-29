@@ -33,4 +33,6 @@ public interface UserMapper {
     User toEntityFromUpdateRequest(com.officefood.healthy_food_api.dto.request.UserUpdateRequest req);
 
     UserResponse toResponse(User entity);
+
+    com.officefood.healthy_food_api.dto.response.UserAdminResponse toAdminResponse(User entity);
 }

@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.dto.response;
 
 import lombok.*;
+import java.time.ZonedDateTime;
 
 @Data
 public class OrderResponse {
@@ -11,4 +12,5 @@ public class OrderResponse {
     private Double subtotalAmount;
     private Double promotionTotal;
     private Double totalAmount;
+    private ZonedDateTime createdAt;
 }

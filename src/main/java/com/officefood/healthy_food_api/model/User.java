@@ -37,6 +37,15 @@ public class User extends BaseEntity {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
+    @Column(name = "address", length = 500)
+    private String address;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
     private Role role = Role.USER;

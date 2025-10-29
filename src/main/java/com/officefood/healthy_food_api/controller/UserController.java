@@ -75,6 +75,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
     /**
      * Override getById() from BaseController
      * User entity checks isAccountActive() instead of isActive
+     * For regular users - only returns ACTIVE users, no createdAt
      * GET /api/users/getbyid/{id}
      */
     @Override
@@ -82,10 +83,23 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
     public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
         return sp.users()
                 .findById(id)
-                .filter(User::isAccountActive)
+                .filter(User::isAccountActive) // Only ACTIVE users
                 .map(mapper::toResponse)
                 .map(response -> ResponseEntity.ok(ApiResponse.success(200, "User retrieved successfully", response)))
                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found or inactive")));
+    }
+
+    /**
+     * Get user by ID for admin - includes createdAt and returns both ACTIVE and DELETED users
+     * GET /api/users/admin/getbyid/{id}
+     */
+    @GetMapping("/admin/getbyid/{id}")
+    public ResponseEntity<ApiResponse<com.officefood.healthy_food_api.dto.response.UserAdminResponse>> getByIdForAdmin(@PathVariable UUID id) {
+        return sp.users()
+                .findById(id)
+                .map(mapper::toAdminResponse)
+                .map(response -> ResponseEntity.ok(ApiResponse.success(200, "User retrieved successfully", response)))
+                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found")));
     }
 
     // POST /api/users/create
@@ -109,9 +123,18 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
             existingUser.setEmail(req.getEmail());
             existingUser.setGoalCode(req.getGoalCode());
 
-            // Update imageUrl if provided
+            // Update optional fields if provided
             if (req.getImageUrl() != null) {
                 existingUser.setImageUrl(req.getImageUrl());
+            }
+            if (req.getDateOfBirth() != null) {
+                existingUser.setDateOfBirth(req.getDateOfBirth());
+            }
+            if (req.getAddress() != null) {
+                existingUser.setAddress(req.getAddress());
+            }
+            if (req.getPhone() != null) {
+                existingUser.setPhone(req.getPhone());
             }
 
             // Password, Role, and Status are NOT updated here
@@ -126,26 +149,6 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
         }
     }
 
-
-    // GET /api/users/{id}/status - Check user account status
-    @GetMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<Object>> checkUserStatus(@PathVariable UUID id) {
-        try {
-            User user = sp.users().findById(id)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            var statusInfo = new java.util.HashMap<String, Object>();
-            statusInfo.put("status", user.getStatus().toString());
-            statusInfo.put("isActive", user.getIsActive());
-            statusInfo.put("isAccountActive", user.isAccountActive());
-            statusInfo.put("deletedAt", user.getDeletedAt());
-
-            return ResponseEntity.ok(ApiResponse.success(200, "User status retrieved", statusInfo));
-        } catch (Exception e) {
-            return ResponseEntity.ok(ApiResponse.error(500, "STATUS_CHECK_FAILED",
-                "Failed to check user status: " + e.getMessage()));
-        }
-    }
 
     /**
      * Override restore() from BaseController

@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.dto.response;
 
 import lombok.*;
+import java.time.ZonedDateTime;
 
 @Data
 public class CategoryResponse {
@@ -9,5 +10,6 @@ public class CategoryResponse {
     private String kind;
     private Integer displayOrder;
     private Boolean isActive;
-    private String imageUrl; // Category icon/image URL
+    private String imageUrl;
+    private ZonedDateTime createdAt;
 }

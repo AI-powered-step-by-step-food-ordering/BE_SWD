@@ -26,15 +26,26 @@ public class SecurityConfig {
     };
 
     private final Filter jwtAuthFilter;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(Filter jwtAuthFilter) {
+    public SecurityConfig(Filter jwtAuthFilter,
+                         CustomAuthenticationEntryPoint authenticationEntryPoint,
+                         CustomAccessDeniedHandler accessDeniedHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Configure custom exception handling
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401 - Not authenticated
+                        .accessDeniedHandler(accessDeniedHandler)          // 403 - Not authorized
+                )
                 .authorizeHttpRequests(auth -> auth
                         // Ensure preflight OPTIONS requests are permitted
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
