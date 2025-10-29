@@ -22,7 +22,8 @@ jobs:
       - name: Build project
         run: |
           chmod +x mvnw
-          ./mvnw clean package -DskipTests=true
+          # -U để force update dependency, clean để tránh xài lại artifact cũ
+          ./mvnw -B -U clean package -DskipTests=true
 
       - name: Copy JAR to server
         uses: appleboy/scp-action@v0.1.7
@@ -33,8 +34,9 @@ jobs:
           port: 4455
           source: "target/healthy-food-api-0.0.1-SNAPSHOT.jar"
           target: "/home/morbious/Food/app.jar/target/"
+          overwrite: true
 
-      - name: Run app on server
+      - name: Restart app and health-check
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -42,22 +44,19 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 4455
           script_stop: false
-          command_timeout: 10m
-          
-      - name: Run app on server
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: morbious
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 4455
-          script_stop: false
-          command_timeout: 10m
+          command_timeout: 15m
           script: |
-            set +e
-            trap '' TERM
+            set -e
 
-            echo "🧹 Stopping old app on port 8080 (if any)..."
+            APP_DIR="/home/morbious/Food/app.jar/target"
+            JAR_NAME="healthy-food-api-0.0.1-SNAPSHOT.jar"
+            JAR_PATH="$APP_DIR/$JAR_NAME"
+
+            echo "📦 JAR on server:"
+            ls -lh "$JAR_PATH" || true
+            stat "$JAR_PATH" || true
+
+            echo "🧹 Stop app on port 8080 if running..."
             if command -v fuser >/dev/null 2>&1; then
               fuser -k -n tcp 8080 || true
             else
@@ -65,17 +64,34 @@ jobs:
               [ -n "$PIDS" ] && kill -9 $PIDS || true
             fi
 
-            # Lấy đường dẫn tuyệt đối tới java
+            echo "⏳ Wait a moment for port release..."
+            sleep 2
+
             JAVA_BIN=$(command -v java || echo /usr/bin/java)
             echo "Using JAVA_BIN=$JAVA_BIN"
 
-            echo "🚀 Starting new app..."
-            cd /home/morbious/Food/app.jar/target || exit 0
-            nohup setsid "$JAVA_BIN" -jar healthy-food-api-0.0.1-SNAPSHOT.jar > app.log 2>&1 < /dev/null & disown || true
+            echo "🚀 Start new app..."
+            cd "$APP_DIR"
+            # chạy nền, ghi log vào app.log
+            nohup setsid "$JAVA_BIN" -jar "$JAR_NAME" > app.log 2>&1 < /dev/null & disown || true
 
-            sleep 6
-            echo "🔎 Verifying process..."
-            ps -ef | grep "[j]ava -jar" || true
+            echo "⏳ Health-check until ready..."
+            # Dùng swagger-ui nếu bạn chưa bật actuator/health.
+            # Nếu đã bật actuator: đổi URL dưới này thành http://127.0.0.1:8080/actuator/health
+            ATTEMPTS=40
+            until curl -fsS "http://127.0.0.1:8080/swagger-ui/index.html" >/dev/null; do
+              ATTEMPTS=$((ATTEMPTS-1))
+              if [ $ATTEMPTS -le 0 ]; then
+                echo "❌ Health check failed"
+                echo "---- Last 200 lines of app.log ----"
+                tail -n 200 app.log || true
+                exit 1
+              fi
+              sleep 3
+            done
 
-            echo "✅ App start command finished"
-            exit 0
+            echo "✅ Deployed & Healthy"
+            echo "---- App process ----"
+            ps -o pid,lstart,cmd -p $(pgrep -f "java -jar") || true
+            echo "---- Last 50 lines of app.log ----"
+            tail -n 50 app.log || true
