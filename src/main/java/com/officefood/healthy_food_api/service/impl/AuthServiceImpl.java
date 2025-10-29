@@ -95,6 +95,7 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
         
         return new LoginResponse(
+            user.getId(),
             accessToken,
             refreshToken,
             "Bearer",
@@ -127,6 +128,7 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return new LoginResponse(
+            user.getId(),
             accessToken,
             refreshToken,
             "Bearer",
@@ -153,6 +155,7 @@ public class AuthServiceImpl implements AuthService {
             String newRefreshToken = jwtService.generateRefreshToken(user.getEmail());
 
             return new LoginResponse(
+                user.getId(),
                 newAccessToken,
                 newRefreshToken,
                 "Bearer",
