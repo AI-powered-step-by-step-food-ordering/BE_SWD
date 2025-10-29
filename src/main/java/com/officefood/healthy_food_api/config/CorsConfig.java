@@ -11,18 +11,14 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
-                        "http://localhost:3000", // NextJS development
-                        "http://localhost:3001", // Alternative port
-                        "http://localhost:5173", // Vite development
-                        "http://localhost:8080", // Backend for testing
-                        "http://127.0.0.1:3000", // Alternative localhost
-                        "http://127.0.0.1:3001", // Alternative localhost
-                        "http://127.0.0.1:5173", // Alternative localhost
-                        "http://cinezone.info:4458", // Swagger UI access
-                        "https://cinezone.info:4458", // HTTPS version
-                        "https://*.vercel.app"   // Vercel deployments
+                        "http://localhost:*",
+                        "http://127.0.0.1:*",
+                        "https://localhost:*",
+                        "https://127.0.0.1:*",
+                        "https://*.cinezone.info",
+                        "https://*.vercel.app"
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);

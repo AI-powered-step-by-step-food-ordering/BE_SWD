@@ -36,10 +36,15 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Auth endpoints phải được ưu tiên đầu tiên
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Swagger và health checks
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/", "/health", "/actuator/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         // Temporary public access for testing
                         .requestMatchers(HttpMethod.GET, "/api/stores/getall", "/api/stores/getbyid/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/stores/create").permitAll()

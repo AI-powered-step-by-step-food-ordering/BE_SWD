@@ -40,31 +40,52 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = req.getRequestURI();
-        if ("OPTIONS".equalsIgnoreCase(req.getMethod()) || isPublicPath(path)) {
+        String method = req.getMethod();
+
+        // Log để debug
+        System.out.println("JwtAuthFilter: Processing " + method + " " + path);
+
+        // Skip authentication for OPTIONS requests and public paths
+        if ("OPTIONS".equalsIgnoreCase(method) || isPublicPath(path)) {
+            System.out.println("JwtAuthFilter: Public path, skipping auth for " + path);
             chain.doFilter(req, res);
             return;
         }
 
-        String auth = req.getHeader("Authorization");
-        if (auth != null && auth.startsWith("Bearer ")) {
-            String token = auth.substring(7);
-            if (!tokenBlacklistService.isBlacklisted(token)) {
-                try {
+        // Get Authorization header
+        String authHeader = req.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            try {
+                // Check if token is blacklisted
+                if (!tokenBlacklistService.isBlacklisted(token)) {
                     String username = jwtService.extractUsername(token);
                     var userDetails = userService.loadUserByUsername(username);
+
                     if (jwtService.isTokenValid(token, userDetails)) {
                         var authToken = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                        System.out.println("JwtAuthFilter: Authentication successful for user: " + username);
                     }
-                } catch (Exception ignored) { }
+                }
+            } catch (Exception e) {
+                System.out.println("JwtAuthFilter: Token validation failed: " + e.getMessage());
+                // Continue without authentication
             }
         }
+
         chain.doFilter(req, res);
     }
 
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
+        return PUBLIC_PATHS.stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 }
