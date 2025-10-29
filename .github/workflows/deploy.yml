@@ -35,6 +35,8 @@ jobs:
           source: "target/healthy-food-api-0.0.1-SNAPSHOT.jar"
           target: "/home/morbious/Food/app.jar/target/"
           overwrite: true
+          strip_components: 1
+          rm: false    
 
       - name: Restart app and health-check
         uses: appleboy/ssh-action@v1.2.0
