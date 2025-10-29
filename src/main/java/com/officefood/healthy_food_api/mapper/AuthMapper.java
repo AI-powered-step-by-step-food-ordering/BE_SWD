@@ -13,8 +13,8 @@ import org.mapstruct.*;
 })
 public interface AuthMapper {
     
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "tokens", ignore = true)
     @Mapping(target = "orders", ignore = true)
     @Mapping(target = "assignedJobs", ignore = true)

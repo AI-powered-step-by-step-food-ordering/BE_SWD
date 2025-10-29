@@ -9,4 +9,5 @@ public class CategoryRequest {
     @NotBlank private String kind;
     private Integer displayOrder;
     private Boolean isActive;
+    private String imageUrl; // Category icon/image URL
 }

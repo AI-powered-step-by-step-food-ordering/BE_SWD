@@ -9,4 +9,5 @@ public class IngredientRequest {
     private String unit;
     private Double unitPrice;
     @NotNull private java.util.UUID categoryId;
+    private String imageUrl; // Ingredient image URL
 }

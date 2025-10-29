@@ -8,7 +8,7 @@ import java.util.*;
 
 @Entity @Table(name="bowl_items")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class BowlItem {
+public class BowlItem extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;

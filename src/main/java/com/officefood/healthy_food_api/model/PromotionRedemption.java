@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity @Table(name="promotion_redemptions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class PromotionRedemption {
+public class PromotionRedemption extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;
@@ -27,8 +27,4 @@ public class PromotionRedemption {
     @Enumerated(EnumType.STRING)
     @Column(nullable=false, length=20)
     private RedemptionStatus status = RedemptionStatus.APPLIED;
-
-    @CreationTimestamp
-    @Column(name="redeemed_at", updatable=false)
-    private OffsetDateTime redeemedAt;
 }

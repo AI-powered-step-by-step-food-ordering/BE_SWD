@@ -20,10 +20,9 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
 @ToString(exclude = "redemptions")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Promotion {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+public class Promotion extends BaseEntity {
 
     @Id
     @GeneratedValue
@@ -82,13 +81,9 @@ public class Promotion {
     @Column(name = "per_order_limit")
     private Integer perOrderLimit;
 
-    /** Đổi từ isActive(Boolean) -> active(boolean) để derived query nhận diện. Default: true */
-    @Column(name = "is_active", nullable = false)
-    @ColumnDefault("1")
-    @Builder.Default
-    private boolean active = true;
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
 
     @OneToMany(mappedBy = "promotion")
-    @Builder.Default
     private Set<PromotionRedemption> redemptions = new HashSet<>();
 }

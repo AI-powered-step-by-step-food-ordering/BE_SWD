@@ -8,7 +8,7 @@ import java.util.*;
 
 @Entity @Table(name="ingredients")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Ingredient {
+public class Ingredient extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
@@ -25,6 +25,9 @@ public class Ingredient {
 
     @Column(name="unit_price")
     private Double unitPrice;
+
+    @Column(name="image_url", length=500)
+    private String imageUrl;
 
     @OneToMany(mappedBy = "ingredient")
     private Set<BowlItem> bowlItems = new HashSet<>();

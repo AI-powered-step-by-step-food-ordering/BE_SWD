@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity @Table(name = "tokens")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Token {
+public class Token extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(name="id", columnDefinition = "BINARY(16)")
     private UUID id;
@@ -27,8 +27,4 @@ public class Token {
 
     @Column(name="expires_at")
     private OffsetDateTime expiresAt;
-
-    @CreationTimestamp
-    @Column(name="created_at", updatable=false)
-    private OffsetDateTime createdAt;
 }

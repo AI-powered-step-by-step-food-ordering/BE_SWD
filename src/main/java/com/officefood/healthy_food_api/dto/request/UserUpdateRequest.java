@@ -4,12 +4,11 @@ import lombok.*;
 import jakarta.validation.constraints.*;
 
 @Data
-public class UserRequest {
+public class UserUpdateRequest {
     @NotBlank private String fullName;
     @NotBlank private String email;
-    @NotBlank private String password;
     private String goalCode;
-    private String role;
     private String status;
     private String imageUrl; // Avatar/profile picture URL
 }
+

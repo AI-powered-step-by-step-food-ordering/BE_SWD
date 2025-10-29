@@ -10,4 +10,5 @@ public class UserResponse {
     private String goalCode;
     private String role;
     private String status;
+    private String imageUrl; // Avatar/profile picture URL
 }

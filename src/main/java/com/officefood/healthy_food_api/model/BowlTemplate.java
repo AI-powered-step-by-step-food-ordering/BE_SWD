@@ -8,7 +8,7 @@ import java.util.*;
 
 @Entity @Table(name="bowls_template")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class BowlTemplate {
+public class BowlTemplate extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;
@@ -19,8 +19,8 @@ public class BowlTemplate {
     @Column(length=1000)
     private String description;
 
-    @Column(name="is_active", nullable=false)
-    private Boolean isActive = true;
+    @Column(name="image_url", length=500)
+    private String imageUrl;
 
     @OneToMany(mappedBy = "template")
     private Set<TemplateStep> steps = new HashSet<>();

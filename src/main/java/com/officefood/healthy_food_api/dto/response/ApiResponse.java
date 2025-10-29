@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -32,16 +30,12 @@ public class ApiResponse<T> {
     @Schema(description = "Error code identifier", example = "VALIDATION_ERROR")
     private String errorCode;
 
-    @Schema(description = "Timestamp")
-    private LocalDateTime timestamp;
-
     public static <T> ApiResponse<T> success(Integer code, String message, T data) {
         return ApiResponse.<T>builder()
                 .success(true)
                 .code(code)
                 .message(message)
                 .data(data)
-                .timestamp(LocalDateTime.now())
                 .build();
     }
 
@@ -51,7 +45,6 @@ public class ApiResponse<T> {
                 .code(code)
                 .errorCode(errorCode)
                 .message(message)
-                .timestamp(LocalDateTime.now())
                 .build();
     }
 
@@ -62,7 +55,6 @@ public class ApiResponse<T> {
                 .errorCode(errorCode)
                 .message(message)
                 .data(data)
-                .timestamp(LocalDateTime.now())
                 .build();
     }
 }

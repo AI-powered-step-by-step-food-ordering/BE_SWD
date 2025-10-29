@@ -7,10 +7,11 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class)
 public interface BowlTemplateMapper {
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
-
     @Mapping(target = "steps", ignore = true)
     @Mapping(target = "bowls", ignore = true)
     BowlTemplate toEntity(BowlTemplateRequest req);
+
     BowlTemplateResponse toResponse(BowlTemplate entity);
 }

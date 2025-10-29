@@ -8,7 +8,7 @@ import java.util.*;
 
 @Entity @Table(name = "stores")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Store {
+public class Store extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
@@ -21,6 +21,9 @@ public class Store {
 
     @Column(length=50)
     private String phone;
+
+    @Column(name="image_url", length=500)
+    private String imageUrl;
 
     @OneToMany(mappedBy = "store")
     private Set<Order> orders = new HashSet<>();

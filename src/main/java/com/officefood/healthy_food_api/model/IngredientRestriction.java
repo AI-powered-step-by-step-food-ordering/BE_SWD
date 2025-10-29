@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 @Entity @Table(name="ingredient_restrictions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class IngredientRestriction {
+public class IngredientRestriction extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
@@ -32,7 +32,4 @@ public class IngredientRestriction {
 
     @Column(length=500)
     private String reason; // Lý do hạn chế
-
-    @Column(name="is_active", nullable=false)
-    private Boolean isActive = true;
 }

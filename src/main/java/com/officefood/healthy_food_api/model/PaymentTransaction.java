@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Entity @Table(name="payment_transactions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class PaymentTransaction {
+public class PaymentTransaction extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;
@@ -35,9 +35,6 @@ public class PaymentTransaction {
     @Column(name="provider_txn_id", length=100)
     private String providerTxnId;
 
-    @CreationTimestamp
-    @Column(name="created_at", updatable=false)
-    private OffsetDateTime createdAt;
 
     @Column(name="captured_at")
     private OffsetDateTime capturedAt;

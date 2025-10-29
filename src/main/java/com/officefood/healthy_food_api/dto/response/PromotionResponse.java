@@ -12,4 +12,5 @@ public class PromotionResponse {
     private Double amountOff;
     private Double minOrderValue;
     private Boolean isActive;
+    private String imageUrl; // Promotion banner image URL
 }

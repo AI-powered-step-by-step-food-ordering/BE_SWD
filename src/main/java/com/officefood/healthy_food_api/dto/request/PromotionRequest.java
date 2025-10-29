@@ -16,4 +16,5 @@ public class PromotionRequest {
     private Integer maxRedemptions;
     private Integer perOrderLimit;
     private Boolean isActive;
+    private String imageUrl; // Promotion banner image URL
 }

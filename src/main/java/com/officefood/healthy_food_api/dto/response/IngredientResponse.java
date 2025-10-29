@@ -9,4 +9,5 @@ public class IngredientResponse {
     private String unit;
     private Double unitPrice;
     private java.util.UUID categoryId;
+    private String imageUrl; // Ingredient image URL
 }

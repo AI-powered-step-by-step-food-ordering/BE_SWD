@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity @Table(name="inventory")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Inventory {
+public class Inventory extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;
@@ -39,8 +39,4 @@ public class Inventory {
 
     @Column(length=500)
     private String note;
-
-    @CreationTimestamp
-    @Column(name="created_at", updatable=false)
-    private OffsetDateTime createdAt;
 }

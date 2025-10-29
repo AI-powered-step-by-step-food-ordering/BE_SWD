@@ -8,4 +8,5 @@ public class BowlTemplateRequest {
     @NotBlank private String name;
     private String description;
     private Boolean isActive;
+    private String imageUrl; // Bowl template/menu image URL
 }

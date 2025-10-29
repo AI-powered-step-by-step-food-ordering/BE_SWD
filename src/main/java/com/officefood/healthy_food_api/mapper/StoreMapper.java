@@ -7,7 +7,11 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class, imports = { com.officefood.healthy_food_api.model.enums.StockAction.class })
 public interface StoreMapper {
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "orders", ignore = true)
+    @Mapping(target = "inventories", ignore = true)
     Store toEntity(StoreRequest req);
+
     StoreResponse toResponse(Store entity);
 }

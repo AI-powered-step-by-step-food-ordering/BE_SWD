@@ -6,7 +6,7 @@ import org.hibernate.annotations.UuidGenerator;
 
 @Entity @Table(name="template_steps")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class TemplateStep {
+public class TemplateStep extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private java.util.UUID id;

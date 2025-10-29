@@ -9,7 +9,7 @@ import java.util.*;
 
 @Entity @Table(name="categories")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Category {
+public class Category extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition = "BINARY(16)")
     private UUID id;
@@ -24,8 +24,8 @@ public class Category {
     @Column(name="display_order")
     private Integer displayOrder;
 
-    @Column(name="is_active", nullable=false)
-    private Boolean isActive = true;
+    @Column(name="image_url", length=500)
+    private String imageUrl;
 
     @OneToMany(mappedBy = "category")
     private Set<Ingredient> ingredients = new HashSet<>();

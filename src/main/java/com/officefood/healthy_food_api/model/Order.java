@@ -3,7 +3,6 @@ package com.officefood.healthy_food_api.model;
 import com.officefood.healthy_food_api.model.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.OffsetDateTime;
@@ -11,7 +10,7 @@ import java.util.*;
 
 @Entity @Table(name="orders")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Order {
+public class Order extends BaseEntity {
     @Id @GeneratedValue @UuidGenerator
     @Column(columnDefinition="BINARY(16)")
     private UUID id;
@@ -24,9 +23,6 @@ public class Order {
     @JoinColumn(name="user_id", nullable=false, columnDefinition="BINARY(16)")
     private User user;
 
-    @CreationTimestamp
-    @Column(name="placed_at", updatable=false)
-    private OffsetDateTime placedAt;
 
     @Column(name="pickup_at")
     private OffsetDateTime pickupAt;

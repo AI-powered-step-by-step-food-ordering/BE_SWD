@@ -25,8 +25,10 @@ public class BaseRepositoryImpl<T, ID> extends SimpleJpaRepository<T, ID>
         this.domainClass = info.getJavaType();
     }
 
-    private Optional<Field> findDeletedField() {
-        Field f = ReflectionUtils.findField(domainClass, "deleted");
+    private Optional<Field> findActiveField() {
+        Field f = ReflectionUtils.findField(domainClass, "isActive");
+        if (f != null && (f.getType() == Boolean.class || f.getType() == boolean.class)) return Optional.of(f);
+        f = ReflectionUtils.findField(domainClass, "deleted");
         if (f != null && (f.getType() == Boolean.class || f.getType() == boolean.class)) return Optional.of(f);
         f = ReflectionUtils.findField(domainClass, "status");
         return Optional.ofNullable(f);
@@ -43,18 +45,25 @@ public class BaseRepositoryImpl<T, ID> extends SimpleJpaRepository<T, ID>
     }
 
     private int doSoftDelete(Collection<ID> ids) {
-        var deletedField = findDeletedField().orElse(null);
-        if (deletedField == null) {
+        var activeField = findActiveField().orElse(null);
+        if (activeField == null) {
             super.deleteAllById(ids);
             return ids.size();
         }
         String entity = info.getEntityName();
-        if ("deleted".equals(deletedField.getName())) {
+        String fieldName = activeField.getName();
+
+        if ("isActive".equals(fieldName)) {
+            return em.createQuery("update " + entity + " e set e.isActive = false, e.deletedAt = CURRENT_TIMESTAMP where e.id in :ids")
+                    .setParameter("ids", ids)
+                    .executeUpdate();
+        }
+        if ("deleted".equals(fieldName)) {
             return em.createQuery("update " + entity + " e set e.deleted = true where e.id in :ids")
                     .setParameter("ids", ids)
                     .executeUpdate();
         }
-        return em.createQuery("update " + entity + " e set e.status = com.officefood.healthy_food_api.model.AccountStatus.DELETED where e.id in :ids")
+        return em.createQuery("update " + entity + " e set e.status = com.officefood.healthy_food_api.model.enums.AccountStatus.DELETED where e.id in :ids")
                 .setParameter("ids", ids)
                 .executeUpdate();
     }
@@ -70,15 +79,22 @@ public class BaseRepositoryImpl<T, ID> extends SimpleJpaRepository<T, ID>
     }
 
     private int doRestore(Collection<ID> ids) {
-        var deletedField = findDeletedField().orElse(null);
-        if (deletedField == null) return 0;
+        var activeField = findActiveField().orElse(null);
+        if (activeField == null) return 0;
         String entity = info.getEntityName();
-        if ("deleted".equals(deletedField.getName())) {
+        String fieldName = activeField.getName();
+
+        if ("isActive".equals(fieldName)) {
+            return em.createQuery("update " + entity + " e set e.isActive = true, e.deletedAt = null where e.id in :ids")
+                    .setParameter("ids", ids)
+                    .executeUpdate();
+        }
+        if ("deleted".equals(fieldName)) {
             return em.createQuery("update " + entity + " e set e.deleted = false where e.id in :ids")
                     .setParameter("ids", ids)
                     .executeUpdate();
         }
-        return em.createQuery("update " + entity + " e set e.status = com.officefood.healthy_food_api.model.AccountStatus.ACTIVE where e.id in :ids")
+        return em.createQuery("update " + entity + " e set e.status = com.officefood.healthy_food_api.model.enums.AccountStatus.ACTIVE where e.id in :ids")
                 .setParameter("ids", ids)
                 .executeUpdate();
     }
@@ -99,6 +115,11 @@ public class BaseRepositoryImpl<T, ID> extends SimpleJpaRepository<T, ID>
         }
         if (hasField("code")) {
             predicates.add(cb.like(cb.lower(root.get("code")), "%" + kw + "%"));
+        }
+
+        // Lọc theo isActive (soft delete)
+        if (hasField("isActive")) {
+            predicates.add(cb.isTrue(root.get("isActive")));
         }
         if (hasField("deleted")) {
             predicates.add(cb.isFalse(root.get("deleted")));
@@ -162,6 +183,14 @@ public class BaseRepositoryImpl<T, ID> extends SimpleJpaRepository<T, ID>
         if (opt.isEmpty()) return opt;
         T entity = opt.get();
 
+        if (hasField("isActive")) {
+            try {
+                Field f = entity.getClass().getDeclaredField("isActive");
+                f.setAccessible(true);
+                Object v = f.get(entity);
+                if (v instanceof Boolean && !(Boolean) v) return Optional.empty();
+            } catch (Exception ignored) { }
+        }
         if (hasField("deleted")) {
             try {
                 Field f = entity.getClass().getDeclaredField("deleted");
