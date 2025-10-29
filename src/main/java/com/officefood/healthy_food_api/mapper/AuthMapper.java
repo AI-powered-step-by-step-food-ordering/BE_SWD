@@ -23,8 +23,6 @@ public interface AuthMapper {
     @Mapping(target = "emailVerificationOtp", ignore = true)
     @Mapping(target = "emailVerificationOtpExpiry", ignore = true)
     @Mapping(target = "otpAttempts", ignore = true)
-    @Mapping(target = "emailVerificationToken", ignore = true)
-    @Mapping(target = "emailVerificationExpiry", ignore = true)
     @Mapping(target = "imageUrl", ignore = true)
     @Mapping(target = "dateOfBirth", ignore = true)
     @Mapping(target = "address", ignore = true)

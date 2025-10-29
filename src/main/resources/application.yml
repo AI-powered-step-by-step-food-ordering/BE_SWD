@@ -57,8 +57,11 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-    operations-sorter: alpha
+    operations-sorter: method
     tags-sorter: alpha
+    doc-expansion: none
+    defaultModelsExpandDepth: -1
+    defaultModelExpandDepth: 0
 
 logging:
   level:
