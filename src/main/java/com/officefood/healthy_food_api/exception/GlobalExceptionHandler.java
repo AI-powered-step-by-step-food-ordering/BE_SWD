@@ -70,8 +70,22 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleOthers(Exception ex) {
-        log.error("❌ Uncategorized exception: {}", ex.getMessage(), ex);
-        ApiResponse<Object> response = ApiResponse.error(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode(), ErrorCode.UNCATEGORIZED_EXCEPTION.name(), ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+        log.error("====================================================");
+        log.error("❌ UNCATEGORIZED EXCEPTION CAUGHT");
+        log.error("====================================================");
+        log.error("Exception Type: {}", ex.getClass().getName());
+        log.error("Exception Message: {}", ex.getMessage());
+        if (ex.getCause() != null) {
+            log.error("Caused by: {} - {}", ex.getCause().getClass().getName(), ex.getCause().getMessage());
+        }
+        log.error("Full Stack Trace:", ex);
+        log.error("====================================================");
+
+        ApiResponse<Object> response = ApiResponse.error(
+            ErrorCode.UNCATEGORIZED_EXCEPTION.getCode(),
+            ErrorCode.UNCATEGORIZED_EXCEPTION.name(),
+            ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage()
+        );
         return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getHttpStatusCode()).body(response);
     }
 }

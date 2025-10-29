@@ -7,8 +7,9 @@ import java.time.ZonedDateTime;
 public class IngredientResponse {
     private java.util.UUID id;
     private String name;
-    private String unit;
-    private Double unitPrice;
+    private String unit; // VD: "g", "ml", "piece"
+    private Double standardQuantity; // VD: 100, 50
+    private Double unitPrice; // Giá cho standardQuantity
     private java.util.UUID categoryId;
     private String imageUrl;
     private ZonedDateTime createdAt;

@@ -20,9 +20,15 @@ public class Ingredient extends BaseEntity {
     @JoinColumn(name="category_id", nullable=false, columnDefinition="BINARY(16)")
     private Category category;
 
+    // Đơn vị đo (gram, ml, piece, etc.)
     @Column(name="unit", length=50)
     private String unit;
 
+    // Số lượng chuẩn cho đơn vị (VD: 100 gram, 50 ml)
+    @Column(name="standard_quantity")
+    private Double standardQuantity;
+
+    // Giá tiền cho standardQuantity đơn vị (VD: 10000 VNĐ cho 100g)
     @Column(name="unit_price")
     private Double unitPrice;
 

@@ -7,11 +7,14 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class, imports = { com.officefood.healthy_food_api.model.enums.RedemptionStatus.class })
 public interface PromotionRedemptionMapper {
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "promotion", expression = "java(com.officefood.healthy_food_api.mapper.helpers.PromotionMapperHelper.promotion(req.getPromotionId()))")
     @Mapping(target = "order", expression = "java(com.officefood.healthy_food_api.mapper.helpers.OrderMapperHelper.order(req.getOrderId()))")
     @Mapping(target = "status", expression = "java(RedemptionStatus.valueOf(req.getStatus() == null ? \"APPLIED\" : req.getStatus()))")
     PromotionRedemption toEntity(PromotionRedemptionRequest req);
 
+    @Mapping(target = "promotionId", source = "promotion.id")
+    @Mapping(target = "orderId", source = "order.id")
     PromotionRedemptionResponse toResponse(PromotionRedemption entity);
 }

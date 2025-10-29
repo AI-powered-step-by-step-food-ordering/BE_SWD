@@ -5,8 +5,8 @@ import jakarta.validation.constraints.*;
 
 @Data
 public class BowlItemRequest {
-    private Double quantity;
-    private Double unitPrice;
+    @NotNull private Double quantity; // Số lượng khách muốn (VD: 150g)
+    // unitPrice sẽ tự động lấy từ Ingredient (snapshot)
     @NotNull private java.util.UUID bowlId;
     @NotNull private java.util.UUID ingredientId;
 }

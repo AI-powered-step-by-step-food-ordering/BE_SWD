@@ -296,7 +296,7 @@ POST /api/ingredients/create
 }
 ```
 
-**⚠️ LƯU Ý:** 
+**⚠️ LƯU Ý:**
 - Mỗi ingredient phải thuộc một category
 - `unitPrice` là giá cho 1 đơn vị (VD: 10000đ cho 100g)
 - Lưu lại các `id` của Ingredients để dùng sau này

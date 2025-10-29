@@ -7,11 +7,15 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class)
 public interface BowlMapper {
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
-
     @Mapping(target = "order", expression = "java(com.officefood.healthy_food_api.mapper.helpers.OrderMapperHelper.order(req.getOrderId()))")
     @Mapping(target = "template", expression = "java(com.officefood.healthy_food_api.mapper.helpers.BowlTemplateMapperHelper.bowlTemplate(req.getTemplateId()))")
     @Mapping(target = "items", ignore = true)
+    @Mapping(target = "linePrice", ignore = true)
     Bowl toEntity(BowlRequest req);
+
+    @Mapping(target = "orderId", source = "order.id")
+    @Mapping(target = "templateId", source = "template.id")
     BowlResponse toResponse(Bowl entity);
 }

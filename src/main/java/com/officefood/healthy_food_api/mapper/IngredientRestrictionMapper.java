@@ -7,7 +7,7 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class)
 public interface IngredientRestrictionMapper {
-
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "primaryIngredient", expression = "java(com.officefood.healthy_food_api.mapper.helpers.IngredientMapperHelper.ingredient(req.getPrimaryIngredientId()))")
     @Mapping(target = "restrictedIngredient", expression = "java(com.officefood.healthy_food_api.mapper.helpers.IngredientMapperHelper.ingredient(req.getRestrictedIngredientId()))")

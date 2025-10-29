@@ -7,11 +7,8 @@ import org.mapstruct.*;
 
 @Mapper(config = GlobalMapperConfig.class, imports = { com.officefood.healthy_food_api.model.enums.PromotionType.class })
 public interface PromotionMapper {
+    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "deletedAt", ignore = true)
-    @Mapping(target = "isActive", ignore = true)
     @Mapping(target = "redemptions", ignore = true)
     @Mapping(target = "type", expression = "java(PromotionType.valueOf(req.getType()))")
     Promotion toEntity(PromotionRequest req);
