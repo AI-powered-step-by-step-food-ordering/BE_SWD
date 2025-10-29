@@ -20,6 +20,4 @@ public class CategoryServiceImpl extends CrudServiceImpl<Category> implements Ca
         return repository;
     }
 
-    @Override public void reorder(UUID categoryId, int newOrder) { repository.findById(categoryId).orElseThrow(); /* TODO */ }
-
 }
