@@ -1,25 +1,28 @@
 package com.officefood.healthy_food_api.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class CorsConfig {
+public class CorsConfig implements WebMvcConfigurer {
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // Cho phép tất cả origin
-        config.addAllowedHeader("*"); // Cho phép tất cả header
-        config.addAllowedMethod("*"); // Cho phép tất cả method
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns(
+                        "http://localhost:3000", // NextJS development
+                        "http://localhost:3001", // Alternative port
+                        "http://localhost:5173", // Vite development
+                        "http://localhost:8080", // Backend for testing
+                        "http://127.0.0.1:3000", // Alternative localhost
+                        "http://127.0.0.1:3001", // Alternative localhost
+                        "http://127.0.0.1:5173", // Alternative localhost
+                        "https://*.vercel.app"   // Vercel deployments
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }

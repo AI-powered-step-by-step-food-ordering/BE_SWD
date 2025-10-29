@@ -18,6 +18,7 @@ public interface ServiceProvider {
     BowlItemService bowlItems();
     PaymentTransactionService payments();
     KitchenJobService kitchenJobs();
+    IngredientRestrictionService ingredientRestrictions();
     AuthService auth();
     EmailService email();
 }

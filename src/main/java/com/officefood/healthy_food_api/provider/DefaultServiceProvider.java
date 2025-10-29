@@ -22,6 +22,7 @@ class DefaultServiceProvider implements ServiceProvider {
     private final BowlItemService bowlItemService;
     private final PaymentTransactionService paymentTransactionService;
     private final KitchenJobService kitchenJobService;
+    private final IngredientRestrictionService ingredientRestrictionService;
     private final AuthService authService;
     private final EmailService emailService;
 
@@ -40,6 +41,7 @@ class DefaultServiceProvider implements ServiceProvider {
     @Override public BowlItemService bowlItems() { return bowlItemService; }
     @Override public PaymentTransactionService payments() { return paymentTransactionService; }
     @Override public KitchenJobService kitchenJobs() { return kitchenJobService; }
+    @Override public IngredientRestrictionService ingredientRestrictions() { return ingredientRestrictionService; }
     @Override public AuthService auth() { return authService; }
     @Override public EmailService email() { return emailService; }
 }

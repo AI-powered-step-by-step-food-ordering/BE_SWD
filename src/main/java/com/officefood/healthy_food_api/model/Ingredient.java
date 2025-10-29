@@ -31,4 +31,12 @@ public class Ingredient {
 
     @OneToMany(mappedBy = "ingredient")
     private Set<Inventory> inventories = new HashSet<>();
+
+    // Các ràng buộc khi ingredient này là primary (chính)
+    @OneToMany(mappedBy = "primaryIngredient")
+    private Set<IngredientRestriction> primaryRestrictions = new HashSet<>();
+
+    // Các ràng buộc khi ingredient này bị restricted (bị hạn chế)
+    @OneToMany(mappedBy = "restrictedIngredient")
+    private Set<IngredientRestriction> restrictedBy = new HashSet<>();
 }

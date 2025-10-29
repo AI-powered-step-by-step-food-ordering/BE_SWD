@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.dto.request.BowlItemRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlItemResponse;
+import com.officefood.healthy_food_api.dto.response.IngredientValidationResult;
 import com.officefood.healthy_food_api.mapper.BowlItemMapper;
 import com.officefood.healthy_food_api.model.BowlItem;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
@@ -43,9 +44,17 @@ public class BowlItemController {
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl item not found")));
     }
 
-    // POST /api/bowl_items/create
+    // POST /api/bowl_items/create - với validation ràng buộc ingredients
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<BowlItemResponse>> create(@Valid @RequestBody BowlItemRequest req) {
+        // Validate ingredient restrictions trước khi tạo
+        IngredientValidationResult validationResult = sp.ingredientRestrictions()
+                .validateIngredientAddition(req.getBowlId(), req.getIngredientId());
+
+        if (!validationResult.isValid()) {
+            return ResponseEntity.ok(ApiResponse.error(400, "INGREDIENT_RESTRICTION_VIOLATED", validationResult.getMessage()));
+        }
+
         BowlItemResponse response = mapper.toResponse(sp.bowlItems().create(mapper.toEntity(req)));
         return ResponseEntity.ok(ApiResponse.success(201, "Bowl item created successfully", response));
     }
