@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -25,9 +26,11 @@ public class Store extends BaseEntity {
     @Column(name="image_url", length=500)
     private String imageUrl;
 
-    @OneToMany(mappedBy = "store")
+    @JsonIgnore
+    @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
     private Set<Order> orders = new HashSet<>();
 
-    @OneToMany(mappedBy = "store")
+    @JsonIgnore
+    @OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
     private Set<Inventory> inventories = new HashSet<>();
 }
