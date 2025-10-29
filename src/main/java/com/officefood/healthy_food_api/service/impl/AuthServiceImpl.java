@@ -87,10 +87,7 @@ public class AuthServiceImpl implements AuthService {
             // Don't fail registration if email sending fails
         }
 
-        // Generate LoginResponse using mapper
-        LoginResponse response = authMapper.toLoginResponse(user);
-        
-        // Set tokens manually since they're ignored in mapper
+        // Generate tokens
         String accessToken = jwtService.generateToken(user.getEmail());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
         
@@ -101,7 +98,13 @@ public class AuthServiceImpl implements AuthService {
             "Bearer",
             user.getEmail(),
             user.getFullName(),
-            jwtService.getAccessTokenExpiration()
+            jwtService.getAccessTokenExpiration(),
+            user.getGoalCode(),
+            user.getRole() != null ? user.getRole().name() : null,
+            user.getImageUrl(),
+            user.getDateOfBirth(),
+            user.getAddress(),
+            user.getPhone()
         );
     }
 
@@ -134,7 +137,13 @@ public class AuthServiceImpl implements AuthService {
             "Bearer",
             user.getEmail(),
             user.getFullName(),
-            jwtService.getAccessTokenExpiration()
+            jwtService.getAccessTokenExpiration(),
+            user.getGoalCode(),
+            user.getRole() != null ? user.getRole().name() : null,
+            user.getImageUrl(),
+            user.getDateOfBirth(),
+            user.getAddress(),
+            user.getPhone()
         );
     }
 
@@ -161,7 +170,13 @@ public class AuthServiceImpl implements AuthService {
                 "Bearer",
                 user.getEmail(),
                 user.getFullName(),
-                jwtService.getAccessTokenExpiration()
+                jwtService.getAccessTokenExpiration(),
+                user.getGoalCode(),
+                user.getRole() != null ? user.getRole().name() : null,
+                user.getImageUrl(),
+                user.getDateOfBirth(),
+                user.getAddress(),
+                user.getPhone()
             );
         } catch (Exception e) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
