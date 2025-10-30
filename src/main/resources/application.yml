@@ -52,6 +52,14 @@ server:
     include-binding-errors: always
     include-stacktrace: always
 
+zalopay:
+  app-id: ${ZALOPAY_APP_ID:2553}
+  key1: ${ZALOPAY_KEY1:PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL}
+  key2: ${ZALOPAY_KEY2:kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz}
+  endpoint: ${ZALOPAY_ENDPOINT:https://sb-openapi.zalopay.vn/v2/create}
+  callback-url: ${ZALOPAY_CALLBACK_URL:http://localhost:8080/api/zalopay/callback}
+  redirect-url: ${ZALOPAY_REDIRECT_URL:http://localhost:3000/payment/result}
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -59,9 +67,9 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
-    doc-expansion: none
-    defaultModelsExpandDepth: -1
-    defaultModelExpandDepth: 0
+    doc-expansion: list
+    defaultModelsExpandDepth: 1
+    defaultModelExpandDepth: 1
 
 logging:
   level:
