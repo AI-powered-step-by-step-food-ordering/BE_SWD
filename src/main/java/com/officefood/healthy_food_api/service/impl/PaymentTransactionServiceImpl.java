@@ -24,4 +24,8 @@ public class PaymentTransactionServiceImpl extends CrudServiceImpl<PaymentTransa
     @Override public void capture(UUID paymentId) { repository.findById(paymentId).orElseThrow(); /* TODO */ }
     @Override public void refund(UUID paymentId) { repository.findById(paymentId).orElseThrow(); /* TODO */ }
 
+    @Override
+    public java.util.List<PaymentTransaction> findByUserId(UUID userId) {
+        return repository.findByUserId(userId);
+    }
 }

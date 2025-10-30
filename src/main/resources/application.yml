@@ -57,8 +57,21 @@ zalopay:
   key1: ${ZALOPAY_KEY1:PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL}
   key2: ${ZALOPAY_KEY2:kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz}
   endpoint: ${ZALOPAY_ENDPOINT:https://sb-openapi.zalopay.vn/v2/create}
-  callback-url: ${ZALOPAY_CALLBACK_URL:http://localhost:8080/api/zalopay/callback}
-  redirect-url: ${ZALOPAY_REDIRECT_URL:http://localhost:3000/payment/result}
+  callback-url: ${ZALOPAY_CALLBACK_URL:http://cinezone.info:4458/api/zalopay/callback}
+  redirect-url: ${ZALOPAY_REDIRECT_URL:https://localhost:3000/checkout/success}
+
+firebase:
+  config:
+    file: ${FIREBASE_CONFIG_FILE:classpath:firebase-service-account.json}
+  # Push notification settings
+  notification:
+    enabled: ${FIREBASE_NOTIFICATION_ENABLED:true}
+    # Android notification channel ID
+    android:
+      channel-id: ${FIREBASE_ANDROID_CHANNEL_ID:order_updates}
+      priority: ${FIREBASE_ANDROID_PRIORITY:HIGH}
+    # Notification badge color (hex format)
+    badge-color: ${FIREBASE_BADGE_COLOR:#52946B}
 
 springdoc:
   api-docs:

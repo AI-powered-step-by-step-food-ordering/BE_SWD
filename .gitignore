@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Firebase ###
+# Firebase service account keys - DO NOT COMMIT
+# NEVER commit these files to Git - they contain sensitive credentials!
+src/main/resources/firebase-service-account.json
+firebase-service-account.json
+**/firebase*key*.json
+**/firebase*service*.json
+!google-services.json
+

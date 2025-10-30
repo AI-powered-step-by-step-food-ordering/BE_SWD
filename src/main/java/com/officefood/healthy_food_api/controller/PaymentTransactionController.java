@@ -66,4 +66,15 @@ public class PaymentTransactionController {
         sp.payments().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction deleted successfully", null));
     }
+
+    // GET /api/payment_transactions/user/{userId} - Get payment history by user ID
+    @GetMapping("/payment-history/{userId}")
+    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getByUserId(@PathVariable UUID userId) {
+        List<PaymentTransactionResponse> transactions = sp.payments()
+                 .findByUserId(userId)
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction history retrieved successfully", transactions));
+    }
 }

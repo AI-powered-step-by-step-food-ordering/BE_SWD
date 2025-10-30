@@ -25,6 +25,8 @@ class DefaultServiceProvider implements ServiceProvider {
     private final IngredientRestrictionService ingredientRestrictionService;
     private final AuthService authService;
     private final EmailService emailService;
+    private final FcmService fcmService;
+    private final NotificationService notificationService;
 
     @Override public UserService users() { return userService; }
     @Override public TokenService tokens() { return tokenService; }
@@ -42,6 +44,8 @@ class DefaultServiceProvider implements ServiceProvider {
     @Override public PaymentTransactionService payments() { return paymentTransactionService; }
     @Override public KitchenJobService kitchenJobs() { return kitchenJobService; }
     @Override public IngredientRestrictionService ingredientRestrictions() { return ingredientRestrictionService; }
+    @Override public FcmService fcm() { return fcmService; }
+    @Override public NotificationService notifications() { return notificationService; }
     @Override public AuthService auth() { return authService; }
     @Override public EmailService email() { return emailService; }
 }

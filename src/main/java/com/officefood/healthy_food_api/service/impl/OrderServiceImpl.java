@@ -5,6 +5,7 @@ import com.officefood.healthy_food_api.model.Bowl;
 import com.officefood.healthy_food_api.model.BowlItem;
 import com.officefood.healthy_food_api.model.Order;
 import com.officefood.healthy_food_api.repository.OrderRepository;
+import com.officefood.healthy_food_api.service.FcmService;
 import com.officefood.healthy_food_api.service.OrderService;
 import com.officefood.healthy_food_api.utils.IngredientCalculator;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @Transactional
 public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderService {
     private final OrderRepository repository;
+    private final FcmService fcmService;
 
     @Override
     protected org.springframework.data.jpa.repository.JpaRepository<Order, UUID> repo() {
@@ -110,7 +112,19 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     public Order confirm(UUID orderId) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        // Update order status to CONFIRMED
+        order.setStatus(com.officefood.healthy_food_api.model.enums.OrderStatus.CONFIRMED);
+
         // TODO: inventory reserve, job create, payment auth
+
+        // Send push notification
+        try {
+            fcmService.sendOrderNotification(order, com.officefood.healthy_food_api.model.enums.OrderStatus.CONFIRMED);
+        } catch (Exception e) {
+            log.error("Failed to send order confirmation notification: {}", e.getMessage());
+        }
+
         return repository.save(order);
     }
 
@@ -118,7 +132,20 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     public Order cancel(UUID orderId, String reason) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        // Update order status to CANCELLED
+        order.setStatus(com.officefood.healthy_food_api.model.enums.OrderStatus.CANCELLED);
+
         // TODO: release inventory, void redemption, refund
+        // TODO: Store cancellation reason if needed
+
+        // Send push notification
+        try {
+            fcmService.sendOrderNotification(order, com.officefood.healthy_food_api.model.enums.OrderStatus.CANCELLED);
+        } catch (Exception e) {
+            log.error("Failed to send order cancellation notification: {}", e.getMessage());
+        }
+
         return repository.save(order);
     }
 
@@ -126,8 +153,26 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     public Order complete(UUID orderId) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        // Update order status to COMPLETED
+        order.setStatus(com.officefood.healthy_food_api.model.enums.OrderStatus.COMPLETED);
+
         // TODO: capture payment
+
+        // Send push notification
+        try {
+            fcmService.sendOrderNotification(order, com.officefood.healthy_food_api.model.enums.OrderStatus.COMPLETED);
+        } catch (Exception e) {
+            log.error("Failed to send order completion notification: {}", e.getMessage());
+        }
+
         return repository.save(order);
+    }
+
+    @Override
+    public java.util.List<Order> findByUserId(UUID userId) {
+        log.info("Finding orders for user: {}", userId);
+        return repository.findByUserId(userId);
     }
 }
 

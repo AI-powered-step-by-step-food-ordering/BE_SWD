@@ -101,4 +101,39 @@ public class OrderController {
         OrderResponse response = mapper.toResponse(sp.orders().complete(id));
         return ResponseEntity.ok(ApiResponse.success(200, "Order completed successfully", response));
     }
+
+    // PUT /api/orders/{orderId}/status - Update order status with push notification
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.officefood.healthy_food_api.dto.request.UpdateOrderStatusRequest request) {
+        Order order = sp.orders().findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // Update status
+        order.setStatus(request.getStatus());
+        Order updatedOrder = sp.orders().update(orderId, order);
+
+        // Send push notification
+        try {
+            sp.fcm().sendOrderNotification(updatedOrder, request.getStatus());
+        } catch (Exception e) {
+            // Log but don't fail the request if notification fails
+            System.err.println("Failed to send notification: " + e.getMessage());
+        }
+
+        OrderResponse response = mapper.toResponse(updatedOrder);
+        return ResponseEntity.ok(ApiResponse.success(200, "Order status updated successfully", response));
+    }
+
+    // GET /api/orders/user/{userId} - Get order history by user ID
+    @GetMapping("/order-history/{userId}")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getByUserId(@PathVariable UUID userId) {
+        List<OrderResponse> orders = sp.orders()
+                 .findByUserId(userId)
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Order history retrieved successfully", orders));
+    }
 }

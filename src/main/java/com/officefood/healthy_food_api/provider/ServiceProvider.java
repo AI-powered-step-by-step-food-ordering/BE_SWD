@@ -21,4 +21,6 @@ public interface ServiceProvider {
     IngredientRestrictionService ingredientRestrictions();
     AuthService auth();
     EmailService email();
+    FcmService fcm();
+    NotificationService notifications();
 }

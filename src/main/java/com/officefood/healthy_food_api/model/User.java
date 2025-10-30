@@ -75,6 +75,19 @@ public class User extends BaseEntity {
     @Column(name = "password_reset_attempts", nullable = false)
     private Integer passwordResetAttempts = 0;
 
+    // FCM Push Notification fields
+    @Column(name = "fcm_token", columnDefinition = "TEXT")
+    private String fcmToken;
+
+    @Column(name = "fcm_platform", length = 20)
+    private String fcmPlatform;
+
+    @Column(name = "fcm_device_id", length = 255)
+    private String fcmDeviceId;
+
+    @Column(name = "fcm_token_updated_at")
+    private OffsetDateTime fcmTokenUpdatedAt;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
 

@@ -5,6 +5,7 @@ import com.officefood.healthy_food_api.repository.base.UuidJpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository extends UuidJpaRepository<Order> {
@@ -30,4 +31,8 @@ public interface OrderRepository extends UuidJpaRepository<Order> {
            where pr.order.id = :orderId and pr.status = com.officefood.healthy_food_api.model.enums.RedemptionStatus.APPLIED
            """)
     long calcTotalDiscount(@Param("orderId") UUID orderId);
+
+    // Get orders by user ID ordered by creation date descending
+    @Query("SELECT o FROM Order o WHERE o.user.id = :userId ORDER BY o.createdAt DESC")
+    List<Order> findByUserId(@Param("userId") UUID userId);
 }

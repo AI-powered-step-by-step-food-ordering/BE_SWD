@@ -1,0 +1,512 @@
+{
+  "info": {
+    "name": "Push Notification Tests",
+    "description": "Complete test collection for Push Notification APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. FCM Token Management",
+      "item": [
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcmToken\": \"test_fcm_token_{{$randomUUID}}\",\n  \"platform\": \"android\",\n  \"deviceId\": \"test_device_{{$randomInt}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/fcm-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "fcm-token"]
+            },
+            "description": "Đăng ký hoặc cập nhật FCM token cho user. Gọi sau khi user login thành công."
+          },
+          "response": []
+        },
+        {
+          "name": "Remove FCM Token (Logout)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/fcm-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "fcm-token"]
+            },
+            "description": "Xoá FCM token khi user logout. User sẽ không nhận notification nữa."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Notification History",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/notifications?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "notifications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Lấy danh sách thông báo của user với phân trang"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/notifications/unread",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "notifications", "unread"]
+            },
+            "description": "Lấy danh sách thông báo chưa đọc"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/notifications/unread-count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "notifications", "unread-count"]
+            },
+            "description": "Đếm số thông báo chưa đọc (hiển thị badge)"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/{{notification_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "{{notification_id}}", "read"]
+            },
+            "description": "Đánh dấu 1 thông báo là đã đọc"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "notifications", "read-all"]
+            },
+            "description": "Đánh dấu tất cả thông báo là đã đọc"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Admin - Promotional Notifications",
+      "item": [
+        {
+          "name": "Send Promotion to Single User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{user_id}}\"],\n  \"title\": \"🎉 Welcome Bonus!\",\n  \"message\": \"Get 20% off on your first order. Use code: WELCOME20\",\n  \"imageUrl\": \"https://example.com/images/welcome-bonus.jpg\",\n  \"promoCode\": \"WELCOME20\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications/promotion",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "promotion"]
+            },
+            "description": "Admin gửi thông báo khuyến mãi cho 1 user"
+          },
+          "response": []
+        },
+        {
+          "name": "Send Promotion to Multiple Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\n    \"uuid-1\",\n    \"uuid-2\",\n    \"uuid-3\"\n  ],\n  \"title\": \"🔥 Flash Sale 50% OFF!\",\n  \"message\": \"Limited time! Get 50% discount on all healthy bowls. Valid until midnight tonight!\",\n  \"imageUrl\": \"https://example.com/images/flash-sale.jpg\",\n  \"promoCode\": \"FLASH50\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notifications/promotion",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "promotion"]
+            },
+            "description": "Admin gửi thông báo khuyến mãi hàng loạt"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Order Status Updates (Auto Trigger)",
+      "item": [
+        {
+          "name": "Update Order to CONFIRMED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cập nhật order status → Tự động gửi notification \"Order Confirmed\""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order to PREPARING",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PREPARING\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cập nhật order status → Tự động gửi notification \"Chef is Cooking\""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order to READY",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"READY\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cập nhật order status → Tự động gửi notification \"Order Ready!\""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order to COMPLETED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cập nhật order status → Tự động gửi notification \"Enjoy Your Meal!\""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Order to CANCELLED",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "status"]
+            },
+            "description": "Cập nhật order status → Tự động gửi notification \"Order Cancelled\""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Auth (Get Tokens First)",
+      "item": [
+        {
+          "name": "Login as User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set('user_token', jsonData.data.accessToken);",
+                  "        pm.collectionVariables.set('user_id', jsonData.data.userId);",
+                  "        console.log('User token saved:', jsonData.data.accessToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login để lấy user token"
+          },
+          "response": []
+        },
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set('admin_token', jsonData.data.accessToken);",
+                  "        console.log('Admin token saved:', jsonData.data.accessToken);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login để lấy admin token"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
