@@ -14,5 +14,5 @@ public class IngredientRestrictionResponse {
     private String restrictedIngredientName;
     private RestrictionType type;
     private String reason;
-    private Boolean isActive;
+    private Boolean active;
 }

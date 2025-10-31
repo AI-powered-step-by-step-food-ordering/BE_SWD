@@ -12,7 +12,7 @@ public class PromotionResponse {
     private Double percentOff;
     private Double amountOff;
     private Double minOrderValue;
-    private Boolean isActive;
+    private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;
 }

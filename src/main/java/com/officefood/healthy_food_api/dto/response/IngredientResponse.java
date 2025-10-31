@@ -12,5 +12,6 @@ public class IngredientResponse {
     private Double unitPrice; // Giá cho standardQuantity
     private java.util.UUID categoryId;
     private String imageUrl;
+    private boolean active;
     private ZonedDateTime createdAt;
 }

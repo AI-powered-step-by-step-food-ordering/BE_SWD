@@ -9,18 +9,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.ZonedDateTime;
 
 @MappedSuperclass
-@Getter
-@Setter
 public abstract class BaseEntity {
 
+    @Getter
+    @Setter
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private ZonedDateTime createdAt;
 
+    @Getter
+    @Setter
     @UpdateTimestamp
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
+    @Getter
+    @Setter
     @Column(name = "deleted_at")
     private ZonedDateTime deletedAt;
 
@@ -41,6 +45,20 @@ public abstract class BaseEntity {
     public void restore() {
         this.isActive = true;
         this.deletedAt = null;
+    }
+
+    /**
+     * Explicit getter for boolean isActive field
+     */
+    public Boolean getIsActive() {
+        return this.isActive;
+    }
+
+    /**
+     * Explicit setter for boolean isActive field
+     */
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     @PrePersist

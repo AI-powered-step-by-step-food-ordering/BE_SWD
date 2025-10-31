@@ -10,7 +10,7 @@ public class StoreResponse {
     private String address;
     private String phone;
     private String imageUrl;
-    private Boolean isActive;
+    private Boolean active;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
 }

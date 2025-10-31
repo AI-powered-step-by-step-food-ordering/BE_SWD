@@ -14,5 +14,6 @@ public interface CategoryMapper {
     @Mapping(target = "kind", expression = "java(IngredientKind.valueOf(req.getKind()))")
     Category toEntity(CategoryRequest req);
 
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
     CategoryResponse toResponse(Category entity);
 }

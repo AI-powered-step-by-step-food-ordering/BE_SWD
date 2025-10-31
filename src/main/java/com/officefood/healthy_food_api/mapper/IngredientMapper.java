@@ -16,5 +16,7 @@ public interface IngredientMapper {
     @Mapping(target = "restrictedBy", ignore = true)
     Ingredient toEntity(IngredientRequest req);
 
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
+    @Mapping(target = "categoryId", source = "category.id")
     IngredientResponse toResponse(Ingredient entity);
 }

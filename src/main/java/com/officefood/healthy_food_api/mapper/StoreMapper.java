@@ -13,5 +13,6 @@ public interface StoreMapper {
     @Mapping(target = "inventories", ignore = true)
     Store toEntity(StoreRequest req);
 
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
     StoreResponse toResponse(Store entity);
 }

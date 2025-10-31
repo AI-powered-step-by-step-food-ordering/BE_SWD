@@ -13,5 +13,6 @@ public interface BowlTemplateMapper {
     @Mapping(target = "bowls", ignore = true)
     BowlTemplate toEntity(BowlTemplateRequest req);
 
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
     BowlTemplateResponse toResponse(BowlTemplate entity);
 }

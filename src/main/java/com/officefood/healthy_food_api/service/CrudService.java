@@ -10,4 +10,6 @@ public interface CrudService<T> {
     T create(T entity);
     T update(UUID id, T entity);
     void deleteById(UUID id);
+    void softDelete(UUID id);
+    void restore(UUID id);
 }

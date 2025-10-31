@@ -8,7 +8,7 @@ public class BowlTemplateResponse {
     private java.util.UUID id;
     private String name;
     private String description;
-    private Boolean isActive;
+    private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;
 }

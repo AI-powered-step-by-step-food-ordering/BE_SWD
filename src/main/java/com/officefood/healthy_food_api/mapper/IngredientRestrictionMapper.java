@@ -17,5 +17,6 @@ public interface IngredientRestrictionMapper {
     @Mapping(target = "primaryIngredientName", source = "primaryIngredient.name")
     @Mapping(target = "restrictedIngredientId", source = "restrictedIngredient.id")
     @Mapping(target = "restrictedIngredientName", source = "restrictedIngredient.name")
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
     IngredientRestrictionResponse toResponse(IngredientRestriction entity);
 }

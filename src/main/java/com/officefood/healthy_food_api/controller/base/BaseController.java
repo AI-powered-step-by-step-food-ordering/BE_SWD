@@ -95,14 +95,12 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
      */
     @PutMapping("/soft-delete/{id}")
     public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable UUID id) {
-        return getService()
-                .findById(id)
-                .map(entity -> {
-                    entity.softDelete();
-                    getService().update(id, entity);
-                    return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record soft deleted successfully", null));
-                })
-                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Record not found")));
+        try {
+            getService().softDelete(id);
+            return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record soft deleted successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Record not found"));
+        }
     }
 
     /**
@@ -110,14 +108,12 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
      */
     @PutMapping("/restore/{id}")
     public ResponseEntity<ApiResponse<Void>> restore(@PathVariable UUID id) {
-        return getService()
-                .findById(id)
-                .map(entity -> {
-                    entity.restore();
-                    getService().update(id, entity);
-                    return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record restored successfully", null));
-                })
-                .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Record not found")));
+        try {
+            getService().restore(id);
+            return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record restored successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Record not found"));
+        }
     }
 
     /**

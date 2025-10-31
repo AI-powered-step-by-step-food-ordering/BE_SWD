@@ -13,5 +13,6 @@ public interface PromotionMapper {
     @Mapping(target = "type", expression = "java(PromotionType.valueOf(req.getType()))")
     Promotion toEntity(PromotionRequest req);
 
+    @Mapping(target = "active", expression = "java(entity.getIsActive())")
     PromotionResponse toResponse(Promotion entity);
 }

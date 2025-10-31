@@ -8,7 +8,7 @@ public class CategoryResponse {
     private java.util.UUID id;
     private String name;
     private String kind;
-    private Boolean isActive;
+    private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;
 }
