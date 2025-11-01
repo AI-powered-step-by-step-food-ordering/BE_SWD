@@ -173,5 +173,53 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
         log.info("Finding orders for user: {}", userId);
         return repository.findByUserId(userId);
     }
+
+    @Override
+    public java.util.List<Order> findAllWithBowlsAndUser() {
+        log.info("Finding all orders with bowls and user data");
+        java.util.List<Order> orders = repository.findAllWithBowlsAndUser();
+
+        // Fetch bowl templates separately to avoid Cartesian product
+        if (!orders.isEmpty()) {
+            java.util.List<String> bowlIds = orders.stream()
+                    .flatMap(o -> o.getBowls().stream())
+                    .map(Bowl::getId)
+                    .distinct()
+                    .toList();
+
+            if (!bowlIds.isEmpty()) {
+                repository.fetchBowlTemplates(bowlIds);
+            }
+        }
+
+        return orders;
+    }
+
+    @Override
+    public java.util.Optional<Order> findByIdWithBowlsAndUser(String id) {
+        log.info("Finding order by id {} with bowls and user data", id);
+        return repository.findByIdWithBowlsAndUser(id);
+    }
+
+    @Override
+    public java.util.List<Order> findByUserIdWithBowlsAndUser(String userId) {
+        log.info("Finding orders for user {} with bowls and user data", userId);
+        java.util.List<Order> orders = repository.findByUserIdWithBowlsAndUser(userId);
+
+        // Fetch bowl templates separately to avoid Cartesian product
+        if (!orders.isEmpty()) {
+            java.util.List<String> bowlIds = orders.stream()
+                    .flatMap(o -> o.getBowls().stream())
+                    .map(Bowl::getId)
+                    .distinct()
+                    .toList();
+
+            if (!bowlIds.isEmpty()) {
+                repository.fetchBowlTemplates(bowlIds);
+            }
+        }
+
+        return orders;
+    }
 }
 

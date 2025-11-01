@@ -26,7 +26,7 @@ public class BowlItemController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<List<BowlItemResponse>>> getAll() {
         List<BowlItemResponse> bowlItems = sp.bowlItems()
-                 .findAll()
+                 .findAllWithIngredient()
                  .stream()
                  .map(mapper::toResponse)
                  .collect(Collectors.toList());
@@ -37,7 +37,7 @@ public class BowlItemController {
     @GetMapping("/getbyid/{id}")
     public ResponseEntity<ApiResponse<BowlItemResponse>> getById(@PathVariable String id) {
         return sp.bowlItems()
-                 .findById(id)
+                 .findByIdWithIngredient(id)
                  .map(mapper::toResponse)
                  .map(bowlItem -> ResponseEntity.ok(ApiResponse.success(200, "Bowl item retrieved successfully", bowlItem)))
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl item not found")));

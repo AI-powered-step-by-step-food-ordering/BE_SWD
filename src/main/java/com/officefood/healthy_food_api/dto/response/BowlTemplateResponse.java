@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.dto.response;
 
 import lombok.*;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 @Data
 public class BowlTemplateResponse {
@@ -11,4 +12,5 @@ public class BowlTemplateResponse {
     private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;
+    private List<TemplateStepResponse> steps;
 }

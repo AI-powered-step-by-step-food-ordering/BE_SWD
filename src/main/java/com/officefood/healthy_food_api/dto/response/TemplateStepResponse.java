@@ -7,6 +7,7 @@ public class TemplateStepResponse {
     private String id;
     private String templateId;
     private String categoryId;
+    private CategoryResponse category;
     private Integer minItems;
     private Integer maxItems;
     private Double defaultQty;

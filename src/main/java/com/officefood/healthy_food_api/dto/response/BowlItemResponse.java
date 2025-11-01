@@ -7,6 +7,7 @@ public class BowlItemResponse {
     private String id;
     private String bowlId;
     private String ingredientId;
+    private IngredientResponse ingredient;
     private Double quantity;
     private Double unitPrice;
 }

@@ -36,6 +36,29 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
         return mapper.toEntity(request);
     }
 
+    // Override to use custom query with steps
+    @Override
+    @GetMapping("/getall")
+    public ResponseEntity<ApiResponse<java.util.List<BowlTemplateResponse>>> getAll() {
+        java.util.List<BowlTemplateResponse> templates = sp.bowlTemplates()
+                 .findAllWithSteps()
+                 .stream()
+                 .map(mapper::toResponse)
+                 .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(200, "Bowl templates retrieved successfully", templates));
+    }
+
+    // Override to use custom query with steps
+    @Override
+    @GetMapping("/getbyid/{id}")
+    public ResponseEntity<ApiResponse<BowlTemplateResponse>> getById(@PathVariable String id) {
+        return sp.bowlTemplates()
+                 .findByIdWithSteps(id)
+                 .map(mapper::toResponse)
+                 .map(template -> ResponseEntity.ok(ApiResponse.success(200, "Bowl template retrieved successfully", template)))
+                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl template not found")));
+    }
+
     // POST /api/bowl_templates/create
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<BowlTemplateResponse>> create(@Valid @RequestBody BowlTemplateRequest req) {

@@ -19,6 +19,18 @@ public class BowlTemplateServiceImpl extends CrudServiceImpl<BowlTemplate> imple
         return repository;
     }
 
-    @Override public void publishTemplate(String templateId) { repository.findById(templateId).orElseThrow(); /* TODO */ }
+    @Override
+    public void publishTemplate(String templateId) {
+        repository.findById(templateId).orElseThrow(); /* TODO */
+    }
 
+    @Override
+    public java.util.List<BowlTemplate> findAllWithSteps() {
+        return repository.findAllWithSteps();
+    }
+
+    @Override
+    public java.util.Optional<BowlTemplate> findByIdWithSteps(String id) {
+        return repository.findByIdWithSteps(id);
+    }
 }

@@ -97,6 +97,18 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
         }
     }
 
-    @Override public void changeQuantity(String bowlItemId, int qty) { repository.findById(bowlItemId).orElseThrow(); /* TODO */ }
+    @Override
+    public void changeQuantity(String bowlItemId, int qty) {
+        repository.findById(bowlItemId).orElseThrow(); /* TODO */
+    }
 
+    @Override
+    public java.util.List<BowlItem> findAllWithIngredient() {
+        return repository.findAllWithIngredient();
+    }
+
+    @Override
+    public java.util.Optional<BowlItem> findByIdWithIngredient(String id) {
+        return repository.findByIdWithIngredient(id);
+    }
 }

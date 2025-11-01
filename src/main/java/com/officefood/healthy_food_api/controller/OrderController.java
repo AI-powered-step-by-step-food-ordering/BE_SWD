@@ -25,7 +25,7 @@ public class OrderController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll() {
         List<OrderResponse> orders = sp.orders()
-                 .findAll()
+                 .findAllWithBowlsAndUser()
                  .stream()
                  .map(mapper::toResponse)
                  .collect(Collectors.toList());
@@ -36,7 +36,7 @@ public class OrderController {
     @GetMapping("/getbyid/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> getById(@PathVariable String id) {
         return sp.orders()
-                 .findById(id)
+                 .findByIdWithBowlsAndUser(id)
                  .map(mapper::toResponse)
                  .map(order -> ResponseEntity.ok(ApiResponse.success(200, "Order retrieved successfully", order)))
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Order not found")));
@@ -129,7 +129,7 @@ public class OrderController {
     @GetMapping("/order-history/{userId}")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getByUserId(@PathVariable String userId) {
         List<OrderResponse> orders = sp.orders()
-                 .findByUserId(userId)
+                 .findByUserIdWithBowlsAndUser(userId)
                  .stream()
                  .map(mapper::toResponse)
                  .collect(Collectors.toList());

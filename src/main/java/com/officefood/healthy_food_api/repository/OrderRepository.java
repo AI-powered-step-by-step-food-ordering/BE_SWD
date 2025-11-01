@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends UuidJpaRepository<Order> {
 
@@ -34,4 +35,45 @@ public interface OrderRepository extends UuidJpaRepository<Order> {
     // Get orders by user ID ordered by creation date descending
     @Query("SELECT o FROM Order o WHERE o.user.id = :userId ORDER BY o.createdAt DESC")
     List<Order> findByUserId(@Param("userId") String userId);
+
+    // Get all orders with bowls and user joined (without template to avoid Cartesian product)
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.store s " +
+           "LEFT JOIN FETCH o.user u " +
+           "LEFT JOIN FETCH o.bowls b " +
+           "WHERE o.isActive = true " +
+           "AND (b.isActive = true OR b IS NULL) " +
+           "ORDER BY o.createdAt DESC")
+    List<Order> findAllWithBowlsAndUser();
+
+    // Helper query to fetch templates for bowls
+    @Query("SELECT DISTINCT b FROM Bowl b " +
+           "LEFT JOIN FETCH b.template t " +
+           "WHERE b.id IN :bowlIds " +
+           "AND b.isActive = true " +
+           "AND (t.isActive = true OR t IS NULL)")
+    List<com.officefood.healthy_food_api.model.Bowl> fetchBowlTemplates(@Param("bowlIds") List<String> bowlIds);
+
+    // Get order by ID with bowls and user joined
+    @Query("SELECT o FROM Order o " +
+           "LEFT JOIN FETCH o.store s " +
+           "LEFT JOIN FETCH o.user u " +
+           "LEFT JOIN FETCH o.bowls b " +
+           "LEFT JOIN FETCH b.template t " +
+           "WHERE o.id = :id " +
+           "AND o.isActive = true " +
+           "AND (b.isActive = true OR b IS NULL) " +
+           "AND (t.isActive = true OR t IS NULL)")
+    Optional<Order> findByIdWithBowlsAndUser(@Param("id") String id);
+
+    // Get orders by user ID with bowls and user joined
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "LEFT JOIN FETCH o.store s " +
+           "LEFT JOIN FETCH o.user u " +
+           "LEFT JOIN FETCH o.bowls b " +
+           "WHERE o.user.id = :userId " +
+           "AND o.isActive = true " +
+           "AND (b.isActive = true OR b IS NULL) " +
+           "ORDER BY o.createdAt DESC")
+    List<Order> findByUserIdWithBowlsAndUser(@Param("userId") String userId);
 }

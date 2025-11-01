@@ -25,7 +25,7 @@ public class BowlController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<List<BowlResponse>>> getAll() {
         List<BowlResponse> bowls = sp.bowls()
-                 .findAll()
+                 .findAllWithTemplateAndSteps()
                  .stream()
                  .map(mapper::toResponse)
                  .collect(Collectors.toList());
@@ -36,9 +36,19 @@ public class BowlController {
     @GetMapping("/getbyid/{id}")
     public ResponseEntity<ApiResponse<BowlResponse>> getById(@PathVariable String id) {
         return sp.bowls()
-                 .findById(id)
+                 .findByIdWithTemplateAndSteps(id)
                  .map(mapper::toResponse)
                  .map(bowl -> ResponseEntity.ok(ApiResponse.success(200, "Bowl retrieved successfully", bowl)))
+                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl not found")));
+    }
+
+    // GET /api/bowls/getbyid/{id}/with-items - Get bowl with all items
+    @GetMapping("/getbyid/{id}/with-items")
+    public ResponseEntity<ApiResponse<BowlResponse>> getByIdWithItems(@PathVariable String id) {
+        return sp.bowls()
+                 .findByIdWithTemplateAndItems(id)
+                 .map(mapper::toResponse)
+                 .map(bowl -> ResponseEntity.ok(ApiResponse.success(200, "Bowl with items retrieved successfully", bowl)))
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl not found")));
     }
 

@@ -5,7 +5,7 @@ import com.officefood.healthy_food_api.dto.response.BowlItemResponse;
 import com.officefood.healthy_food_api.model.*;
 import org.mapstruct.*;
 
-@Mapper(config = GlobalMapperConfig.class)
+@Mapper(config = GlobalMapperConfig.class, uses = {IngredientMapper.class})
 public interface BowlItemMapper {
     @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
@@ -16,5 +16,6 @@ public interface BowlItemMapper {
 
     @Mapping(target = "bowlId", source = "bowl.id")
     @Mapping(target = "ingredientId", source = "ingredient.id")
+    @Mapping(target = "ingredient", source = "ingredient")
     BowlItemResponse toResponse(BowlItem entity);
 }
