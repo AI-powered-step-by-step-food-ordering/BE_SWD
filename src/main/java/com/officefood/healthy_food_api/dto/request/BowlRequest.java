@@ -7,6 +7,6 @@ import jakarta.validation.constraints.*;
 public class BowlRequest {
     private String name;
     private String instruction;
-    @NotNull private java.util.UUID orderId;
-    @NotNull private java.util.UUID templateId;
+    @NotNull private String orderId;
+    @NotNull private String templateId;
 }

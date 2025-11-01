@@ -7,6 +7,6 @@ import jakarta.validation.constraints.*;
 public class OrderRequest {
     private java.time.OffsetDateTime pickupAt;
     private String note;
-    @NotNull private java.util.UUID storeId;
-    @NotNull private java.util.UUID userId;
+    @NotNull private String storeId;
+    @NotNull private String userId;
 }

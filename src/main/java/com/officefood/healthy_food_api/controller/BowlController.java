@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class BowlController {
 
     // GET /api/bowls/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<BowlResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<BowlResponse>> getById(@PathVariable String id) {
         return sp.bowls()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class BowlController {
 
     // PUT /api/bowls/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<BowlResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<BowlResponse>> update(@PathVariable String id,
                               @Valid @RequestBody BowlRequest req) {
         Bowl entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class BowlController {
 
     // DELETE /api/bowls/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.bowls().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Bowl deleted successfully", null));
     }

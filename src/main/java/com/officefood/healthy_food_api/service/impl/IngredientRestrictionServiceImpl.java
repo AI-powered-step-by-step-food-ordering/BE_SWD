@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,25 +25,25 @@ public class IngredientRestrictionServiceImpl extends CrudServiceImpl<Ingredient
     private final BowlRepository bowlRepository;
 
     @Override
-    protected JpaRepository<IngredientRestriction, UUID> repo() {
+    protected JpaRepository<IngredientRestriction, String> repo() {
         return restrictionRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public IngredientValidationResult validateIngredientAddition(UUID bowlId, UUID newIngredientId) {
+    public IngredientValidationResult validateIngredientAddition(String bowlId, String newIngredientId) {
         Bowl bowl = bowlRepository.findById(bowlId)
                 .orElseThrow(() -> new RuntimeException("Bowl not found"));
 
-        // Lấy tất cả ingredients hiện có trong bowl
-        List<UUID> existingIngredientIds = bowl.getItems().stream()
+        // LÃƒÂ¡Ã‚ÂºÃ‚Â¥y tÃƒÂ¡Ã‚ÂºÃ‚Â¥t cÃƒÂ¡Ã‚ÂºÃ‚Â£ ingredients hiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n cÃƒÆ’Ã‚Â³ trong bowl
+        List<String> existingIngredientIds = bowl.getItems().stream()
                 .map(bowlItem -> bowlItem.getIngredient().getId())
                 .collect(Collectors.toList());
 
         List<IngredientValidationResult.ConflictDetail> conflicts = new ArrayList<>();
 
-        // Kiểm tra xung đột với từng ingredient đã có
-        for (UUID existingIngredientId : existingIngredientIds) {
+        // KiÃƒÂ¡Ã‚Â»Ã†â€™m tra xung Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢t vÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºi tÃƒÂ¡Ã‚Â»Ã‚Â«ng ingredient Ãƒâ€žÃ¢â‚¬ËœÃƒÆ’Ã‚Â£ cÃƒÆ’Ã‚Â³
+        for (String existingIngredientId : existingIngredientIds) {
             List<IngredientRestriction> conflictRestrictions = restrictionRepository
                     .findConflictsBetween(newIngredientId, existingIngredientId);
 
@@ -73,16 +72,16 @@ public class IngredientRestrictionServiceImpl extends CrudServiceImpl<Ingredient
 
     @Override
     @Transactional(readOnly = true)
-    public List<UUID> getRestrictedIngredientsForBowl(UUID bowlId) {
+    public List<String> getRestrictedIngredientsForBowl(String bowlId) {
         Bowl bowl = bowlRepository.findById(bowlId)
                 .orElseThrow(() -> new RuntimeException("Bowl not found"));
 
-        List<UUID> restrictedIngredients = new ArrayList<>();
+        List<String> restrictedIngredients = new ArrayList<>();
 
-        // Lấy tất cả ingredients hiện có trong bowl
+        // LÃƒÂ¡Ã‚ÂºÃ‚Â¥y tÃƒÂ¡Ã‚ÂºÃ‚Â¥t cÃƒÂ¡Ã‚ÂºÃ‚Â£ ingredients hiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n cÃƒÆ’Ã‚Â³ trong bowl
         for (BowlItem bowlItem : bowl.getItems()) {
-            UUID ingredientId = bowlItem.getIngredient().getId();
-            List<UUID> restricted = restrictionRepository.findRestrictedIngredientIds(ingredientId);
+            String ingredientId = bowlItem.getIngredient().getId();
+            List<String> restricted = restrictionRepository.findRestrictedIngredientIds(ingredientId);
             restrictedIngredients.addAll(restricted);
         }
 
@@ -91,7 +90,7 @@ public class IngredientRestrictionServiceImpl extends CrudServiceImpl<Ingredient
 
     @Override
     @Transactional(readOnly = true)
-    public boolean hasConflict(UUID ingredient1Id, UUID ingredient2Id) {
+    public boolean hasConflict(String ingredient1Id, String ingredient2Id) {
         List<IngredientRestriction> conflicts = restrictionRepository
                 .findConflictsBetween(ingredient1Id, ingredient2Id);
         return !conflicts.isEmpty();

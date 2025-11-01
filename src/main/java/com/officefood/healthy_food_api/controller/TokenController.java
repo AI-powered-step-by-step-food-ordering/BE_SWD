@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class TokenController {
 
     // GET /api/tokens/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<TokenResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<TokenResponse>> getById(@PathVariable String id) {
         return sp.tokens()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class TokenController {
 
     // PUT /api/tokens/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<TokenResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<TokenResponse>> update(@PathVariable String id,
                               @Valid @RequestBody TokenRequest req) {
         Token entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class TokenController {
 
     // DELETE /api/tokens/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.tokens().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Token deleted successfully", null));
     }

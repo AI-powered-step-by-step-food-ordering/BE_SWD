@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,12 +15,12 @@ public class KitchenJobServiceImpl extends CrudServiceImpl<KitchenJob> implement
     private final KitchenJobRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<KitchenJob, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<KitchenJob, String> repo() {
         return repository;
     }
 
-    @Override public void startJob(UUID jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
-    @Override public void handOver(UUID jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
-    @Override public void cancelJob(UUID jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
+    @Override public void startJob(String jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
+    @Override public void handOver(String jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
+    @Override public void cancelJob(String jobId) { repository.findById(jobId).orElseThrow(); /* TODO */ }
 
 }

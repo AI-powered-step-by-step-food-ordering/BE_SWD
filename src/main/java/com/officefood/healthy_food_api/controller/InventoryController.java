@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class InventoryController {
 
     // GET /api/inventories/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<InventoryResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<InventoryResponse>> getById(@PathVariable String id) {
         return sp.inventories()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class InventoryController {
 
     // PUT /api/inventories/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<InventoryResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<InventoryResponse>> update(@PathVariable String id,
                               @Valid @RequestBody InventoryRequest req) {
         Inventory entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class InventoryController {
 
     // DELETE /api/inventories/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.inventories().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Inventory deleted successfully", null));
     }

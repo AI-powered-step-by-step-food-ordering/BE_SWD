@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class OrderController {
 
     // GET /api/orders/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<OrderResponse>> getById(@PathVariable String id) {
         return sp.orders()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class OrderController {
 
     // PUT /api/orders/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<OrderResponse>> update(@PathVariable String id,
                               @Valid @RequestBody OrderRequest req) {
         Order entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,42 +61,42 @@ public class OrderController {
 
     // DELETE /api/orders/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.orders().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Order deleted successfully", null));
     }
 
     // POST /api/orders/recalc/{id}
     @PostMapping("/recalc/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> recalc(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<OrderResponse>> recalc(@PathVariable String id) {
         OrderResponse response = mapper.toResponse(sp.orders().recalcTotals(id));
         return ResponseEntity.ok(ApiResponse.success(200, "Order totals recalculated successfully", response));
     }
 
     // POST /api/orders/apply-promo/{id}?code=...
     @PostMapping("/apply-promo/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> applyPromo(@PathVariable UUID id, @RequestParam String code) {
+    public ResponseEntity<ApiResponse<OrderResponse>> applyPromo(@PathVariable String id, @RequestParam String code) {
         OrderResponse response = mapper.toResponse(sp.orders().applyPromotion(id, code));
         return ResponseEntity.ok(ApiResponse.success(200, "Promotion applied successfully", response));
     }
 
     // POST /api/orders/confirm/{id}
     @PostMapping("/confirm/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable String id) {
         OrderResponse response = mapper.toResponse(sp.orders().confirm(id));
         return ResponseEntity.ok(ApiResponse.success(200, "Order confirmed successfully", response));
     }
 
     // POST /api/orders/cancel/{id}?reason=...
     @PostMapping("/cancel/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> cancel(@PathVariable UUID id, @RequestParam(required=false) String reason) {
+    public ResponseEntity<ApiResponse<OrderResponse>> cancel(@PathVariable String id, @RequestParam(required=false) String reason) {
         OrderResponse response = mapper.toResponse(sp.orders().cancel(id, reason));
         return ResponseEntity.ok(ApiResponse.success(200, "Order cancelled successfully", response));
     }
 
     // POST /api/orders/complete/{id}
     @PostMapping("/complete/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> complete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<OrderResponse>> complete(@PathVariable String id) {
         OrderResponse response = mapper.toResponse(sp.orders().complete(id));
         return ResponseEntity.ok(ApiResponse.success(200, "Order completed successfully", response));
     }
@@ -105,7 +104,7 @@ public class OrderController {
     // PUT /api/orders/{orderId}/status - Update order status with push notification
     @PutMapping("/{orderId}/status")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
-            @PathVariable UUID orderId,
+            @PathVariable String orderId,
             @Valid @RequestBody com.officefood.healthy_food_api.dto.request.UpdateOrderStatusRequest request) {
         Order order = sp.orders().findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -128,7 +127,7 @@ public class OrderController {
 
     // GET /api/orders/user/{userId} - Get order history by user ID
     @GetMapping("/order-history/{userId}")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getByUserId(@PathVariable String userId) {
         List<OrderResponse> orders = sp.orders()
                  .findByUserId(userId)
                  .stream()

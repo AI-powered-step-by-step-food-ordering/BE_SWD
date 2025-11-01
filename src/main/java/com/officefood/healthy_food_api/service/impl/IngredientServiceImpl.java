@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +15,10 @@ public class IngredientServiceImpl extends CrudServiceImpl<Ingredient> implement
     private final IngredientRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Ingredient, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Ingredient, String> repo() {
         return repository;
     }
 
-    @Override public void markOutOfStock(UUID ingredientId) { repository.findById(ingredientId).orElseThrow(); /* TODO */ }
+    @Override public void markOutOfStock(String ingredientId) { repository.findById(ingredientId).orElseThrow(); /* TODO */ }
 
 }

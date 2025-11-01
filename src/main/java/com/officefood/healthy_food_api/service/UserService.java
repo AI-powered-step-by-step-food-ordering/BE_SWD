@@ -4,5 +4,5 @@ import com.officefood.healthy_food_api.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends CrudService<User>, UserDetailsService {
-    void changePassword(java.util.UUID userId, String rawPassword);
+    void changePassword(String userId, String rawPassword);
 }

@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 @Slf4j
 
 @Service
@@ -22,7 +21,7 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
     private final IngredientRepository ingredientRepository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<BowlItem, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<BowlItem, String> repo() {
         return repository;
     }
 
@@ -53,11 +52,11 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
                 throw new IllegalArgumentException("Bowl must be specified");
             }
 
-            // Tự động snapshot unitPrice từ Ingredient (giá tại thời điểm đặt)
+            // TÃƒÂ¡Ã‚Â»Ã‚Â± Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã¢â€žÂ¢ng snapshot unitPrice tÃƒÂ¡Ã‚Â»Ã‚Â« Ingredient (giÃƒÆ’Ã‚Â¡ tÃƒÂ¡Ã‚ÂºÃ‚Â¡i thÃƒÂ¡Ã‚Â»Ã‚Âi Ãƒâ€žÃ¢â‚¬ËœiÃƒÂ¡Ã‚Â»Ã†â€™m Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t)
             if (entity.getUnitPrice() == null) {
                 log.info("UnitPrice is null, fetching from Ingredient...");
 
-                UUID ingredientId = entity.getIngredient().getId();
+                String ingredientId = entity.getIngredient().getId();
                 log.info("Fetching Ingredient with ID: {}", ingredientId);
 
                 Ingredient ingredient = ingredientRepository.findById(ingredientId)
@@ -73,7 +72,7 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
                     ingredient.getStandardQuantity(),
                     ingredient.getUnitPrice());
 
-                // ⭐ SNAPSHOT: Lưu giá hiện tại của Ingredient
+                // ÃƒÂ¢Ã‚Â­Ã‚Â SNAPSHOT: LÃƒâ€ Ã‚Â°u giÃƒÆ’Ã‚Â¡ hiÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¡n tÃƒÂ¡Ã‚ÂºÃ‚Â¡i cÃƒÂ¡Ã‚Â»Ã‚Â§a Ingredient
                 if (ingredient.getUnitPrice() == null) {
                     log.error("Ingredient unitPrice is null for ingredient: {}", ingredient.getName());
                     throw new IllegalArgumentException("Ingredient unitPrice cannot be null for: " + ingredient.getName());
@@ -98,6 +97,6 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
         }
     }
 
-    @Override public void changeQuantity(UUID bowlItemId, int qty) { repository.findById(bowlItemId).orElseThrow(); /* TODO */ }
+    @Override public void changeQuantity(String bowlItemId, int qty) { repository.findById(bowlItemId).orElseThrow(); /* TODO */ }
 
 }

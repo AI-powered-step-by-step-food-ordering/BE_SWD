@@ -4,12 +4,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 public class ZaloPayCreateOrderRequest {
     @NotNull(message = "Order ID is required")
-    private UUID orderId;
+    private String orderId;
 
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")

@@ -19,13 +19,13 @@ public class PaymentServiceImpl implements PaymentService {
         tx.setOrder(order); tx.setMethod(method); tx.setStatus(PaymentStatus.AUTHORIZED); tx.setAmount(amount);
         return repository.save(tx);
     }
-    @Override public PaymentTransaction capture(Order order, java.util.UUID paymentId) {
+    @Override public PaymentTransaction capture(Order order, String paymentId) {
         PaymentTransaction tx = repository.findById(paymentId).orElseThrow();
         if (!tx.getOrder().getId().equals(order.getId())) throw new BusinessException("Payment does not belong to order");
         tx.setStatus(PaymentStatus.CAPTURED);
         return repository.save(tx);
     }
-    @Override public PaymentTransaction refund(Order order, java.util.UUID paymentId, double amount) {
+    @Override public PaymentTransaction refund(Order order, String paymentId, double amount) {
         PaymentTransaction tx = repository.findById(paymentId).orElseThrow();
         if (!tx.getOrder().getId().equals(order.getId())) throw new BusinessException("Payment does not belong to order");
         PaymentTransaction r = new PaymentTransaction();

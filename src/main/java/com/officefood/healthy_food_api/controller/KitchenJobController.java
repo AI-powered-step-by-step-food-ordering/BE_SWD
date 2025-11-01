@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class KitchenJobController {
 
     // GET /api/kitchen_jobs/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<KitchenJobResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<KitchenJobResponse>> getById(@PathVariable String id) {
         return sp.kitchenJobs()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class KitchenJobController {
 
     // PUT /api/kitchen_jobs/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<KitchenJobResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<KitchenJobResponse>> update(@PathVariable String id,
                               @Valid @RequestBody KitchenJobRequest req) {
         KitchenJob entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class KitchenJobController {
 
     // DELETE /api/kitchen_jobs/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.kitchenJobs().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Kitchen job deleted successfully", null));
     }

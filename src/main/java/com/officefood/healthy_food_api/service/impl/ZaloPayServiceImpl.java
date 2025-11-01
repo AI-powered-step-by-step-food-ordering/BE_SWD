@@ -208,7 +208,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
      * @param forceStatus Optional: 1 = force SUCCESS, 2 = force FAIL, null = query ZaloPay
      */
     @Override
-    public void updatePaymentStatus(UUID paymentTransactionId, Integer forceStatus) throws Exception {
+    public void updatePaymentStatus(String paymentTransactionId, Integer forceStatus) throws Exception {
         log.info("Updating payment status for payment transaction ID: {}, forceStatus: {}",
                 paymentTransactionId, forceStatus);
 
@@ -270,7 +270,7 @@ public class ZaloPayServiceImpl implements ZaloPayService {
     }
 
     @Override
-    public String refundPayment(UUID paymentTransactionId, Double amount, String description) throws Exception {
+    public String refundPayment(String paymentTransactionId, Double amount, String description) throws Exception {
         PaymentTransaction payment = paymentTransactionRepository.findById(paymentTransactionId)
                 .orElseThrow(() -> new NotFoundException("Payment transaction not found"));
         

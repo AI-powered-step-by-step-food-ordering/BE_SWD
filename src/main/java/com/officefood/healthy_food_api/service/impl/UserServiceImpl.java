@@ -9,7 +9,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
     private final UserRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<User, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<User, String> repo() {
         return repository;
     }
 
@@ -44,7 +43,7 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
     }
 
     @Override
-    public void changePassword(UUID userId, String rawPassword) {
+    public void changePassword(String userId, String rawPassword) {
         repository.findById(userId).orElseThrow();
         /* TODO */
     }

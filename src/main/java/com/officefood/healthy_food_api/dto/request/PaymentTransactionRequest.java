@@ -9,5 +9,5 @@ public class PaymentTransactionRequest {
     @NotBlank private String status;
     @NotNull private Double amount;
     private String providerTxnId;
-    @NotNull private java.util.UUID orderId;
+    @NotNull private String orderId;
 }

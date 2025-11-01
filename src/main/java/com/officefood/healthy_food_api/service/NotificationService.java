@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +26,7 @@ public class NotificationService {
      * Get all notifications for a user
      */
     @Transactional(readOnly = true)
-    public Page<NotificationResponse> getUserNotifications(UUID userId, Pageable pageable) {
+    public Page<NotificationResponse> getUserNotifications(String userId, Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -40,7 +39,7 @@ public class NotificationService {
      * Get unread notifications for a user
      */
     @Transactional(readOnly = true)
-    public List<NotificationResponse> getUnreadNotifications(UUID userId) {
+    public List<NotificationResponse> getUnreadNotifications(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -55,7 +54,7 @@ public class NotificationService {
      * Get unread notification count
      */
     @Transactional(readOnly = true)
-    public long getUnreadCount(UUID userId) {
+    public long getUnreadCount(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -66,7 +65,7 @@ public class NotificationService {
      * Mark notification as read
      */
     @Transactional
-    public void markAsRead(UUID notificationId) {
+    public void markAsRead(String notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
@@ -80,7 +79,7 @@ public class NotificationService {
      * Mark all notifications as read for a user
      */
     @Transactional
-    public void markAllAsRead(UUID userId) {
+    public void markAllAsRead(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

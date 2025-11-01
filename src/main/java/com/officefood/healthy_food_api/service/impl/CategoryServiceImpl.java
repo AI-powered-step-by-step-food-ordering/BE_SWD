@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +15,7 @@ public class CategoryServiceImpl extends CrudServiceImpl<Category> implements Ca
     private final CategoryRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Category, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Category, String> repo() {
         return repository;
     }
 

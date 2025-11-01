@@ -12,7 +12,6 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "promotions")
@@ -26,10 +25,10 @@ public class Promotion extends BaseEntity {
 
     @Id
     @GeneratedValue
-    @UuidGenerator
-    @Column(columnDefinition = "BINARY(16)")
+    @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition = "VARCHAR(36)")
     @EqualsAndHashCode.Include
-    private UUID id;
+    private String id;
 
     /** Mã khuyến mãi – chuẩn hoá UPPERCASE, duy nhất */
     @NotBlank

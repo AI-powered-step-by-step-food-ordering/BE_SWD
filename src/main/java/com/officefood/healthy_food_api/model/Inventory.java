@@ -7,21 +7,20 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity @Table(name="inventory")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Inventory extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition="BINARY(16)")
-    private UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition="VARCHAR(36)")
+    private String id;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="store_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="store_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Store store;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="ingredient_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="ingredient_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Ingredient ingredient;
 
     @Enumerated(EnumType.STRING)
@@ -34,8 +33,8 @@ public class Inventory extends BaseEntity {
     @Column(name="balance_after")
     private Double balanceAfter;
 
-    @Column(name="ref_order_id", columnDefinition="BINARY(16)")
-    private UUID refOrderId;
+    @Column(name="ref_order_id", columnDefinition="VARCHAR(36)")
+    private String refOrderId;
 
     @Column(length=500)
     private String note;

@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -24,12 +23,12 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     private final FcmService fcmService;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Order, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Order, String> repo() {
         return repository;
     }
 
     @Override
-    public Order recalcTotals(UUID orderId) {
+    public Order recalcTotals(String orderId) {
         log.info("=== Recalculating totals for Order: {} ===", orderId);
 
         Order order = repository.findById(orderId)
@@ -48,7 +47,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
             // Calculate each bowl item's price
             for (BowlItem item : bowl.getItems()) {
                 try {
-                    // Calculate: (quantity / standardQuantity) × unitPrice (snapshot)
+                    // Calculate: (quantity / standardQuantity) ÃƒÆ’Ã¢â‚¬â€ unitPrice (snapshot)
                     double itemPrice = IngredientCalculator.calculateBowlItemPrice(
                         item.getQuantity(),
                         item.getIngredient().getStandardQuantity(),
@@ -101,7 +100,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
-    public Order applyPromotion(UUID orderId, String promoCode) {
+    public Order applyPromotion(String orderId, String promoCode) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
         // TODO: lookup promotion, create redemption, recalc
@@ -109,7 +108,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
-    public Order confirm(UUID orderId) {
+    public Order confirm(String orderId) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
 
@@ -129,7 +128,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
-    public Order cancel(UUID orderId, String reason) {
+    public Order cancel(String orderId, String reason) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
 
@@ -150,7 +149,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
-    public Order complete(UUID orderId) {
+    public Order complete(String orderId) {
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
 
@@ -170,7 +169,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
-    public java.util.List<Order> findByUserId(UUID userId) {
+    public java.util.List<Order> findByUserId(String userId) {
         log.info("Finding orders for user: {}", userId);
         return repository.findByUserId(userId);
     }

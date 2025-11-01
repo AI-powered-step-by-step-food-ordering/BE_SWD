@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,11 +15,11 @@ public class TokenServiceImpl extends CrudServiceImpl<Token> implements TokenSer
     private final TokenRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Token, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Token, String> repo() {
         return repository;
     }
 
-    @Override public void revoke(UUID tokenId) { repository.findById(tokenId).orElseThrow(); /* TODO */ }
-    @Override public void revokeAllByUser(UUID userId) { /* TODO */ }
+    @Override public void revoke(String tokenId) { repository.findById(tokenId).orElseThrow(); /* TODO */ }
+    @Override public void revokeAllByUser(String userId) { /* TODO */ }
 
 }

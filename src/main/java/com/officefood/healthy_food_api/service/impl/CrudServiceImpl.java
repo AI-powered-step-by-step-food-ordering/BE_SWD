@@ -7,30 +7,29 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Transactional
 public abstract class CrudServiceImpl<T> implements CrudService<T> {
 
-    protected abstract JpaRepository<T, UUID> repo();
+    protected abstract JpaRepository<T, String> repo();
 
     @Transactional(readOnly = true)
     public List<T> findAll() { return repo().findAll(); }
 
     @Transactional(readOnly = true)
-    public Optional<T> findById(UUID id) { return repo().findById(id); }
+    public Optional<T> findById(String id) { return repo().findById(id); }
 
     public T create(T entity) { return repo().save(entity); }
 
-    public T update(UUID id, T entity) {
+    public T update(String id, T entity) {
         // Ensure the entity has the correct ID before saving
         return repo().save(entity);
     }
 
-    public void deleteById(UUID id) { repo().deleteById(id); }
+    public void deleteById(String id) { repo().deleteById(id); }
 
     @Override
-    public void softDelete(UUID id) {
+    public void softDelete(String id) {
         T entity = repo().findById(id)
             .orElseThrow(() -> new RuntimeException("Entity not found with id: " + id));
         if (entity instanceof BaseEntity) {
@@ -40,7 +39,7 @@ public abstract class CrudServiceImpl<T> implements CrudService<T> {
     }
 
     @Override
-    public void restore(UUID id) {
+    public void restore(String id) {
         T entity = repo().findById(id)
             .orElseThrow(() -> new RuntimeException("Entity not found with id: " + id));
         if (entity instanceof BaseEntity) {

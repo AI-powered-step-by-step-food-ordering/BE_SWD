@@ -7,7 +7,7 @@ import jakarta.validation.constraints.*;
 public class KitchenJobRequest {
     private String status;
     private String note;
-    @NotNull private java.util.UUID orderId;
-    @NotNull private java.util.UUID bowlId;
-    @NotNull private java.util.UUID assignedUserId;
+    @NotNull private String orderId;
+    @NotNull private String bowlId;
+    @NotNull private String assignedUserId;
 }

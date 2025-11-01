@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +15,10 @@ public class BowlServiceImpl extends CrudServiceImpl<Bowl> implements BowlServic
     private final BowlRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Bowl, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Bowl, String> repo() {
         return repository;
     }
 
-    @Override public void markReady(UUID bowlId) { repository.findById(bowlId).orElseThrow(); /* TODO */ }
+    @Override public void markReady(String bowlId) { repository.findById(bowlId).orElseThrow(); /* TODO */ }
 
 }

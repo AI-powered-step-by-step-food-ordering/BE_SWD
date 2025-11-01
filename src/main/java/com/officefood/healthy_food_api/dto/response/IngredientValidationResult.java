@@ -2,7 +2,6 @@ package com.officefood.healthy_food_api.dto.response;
 
 import lombok.*;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +16,7 @@ public class IngredientValidationResult {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ConflictDetail {
-        private UUID conflictingIngredientId;
+        private String conflictingIngredientId;
         private String conflictingIngredientName;
         private String reason;
     }

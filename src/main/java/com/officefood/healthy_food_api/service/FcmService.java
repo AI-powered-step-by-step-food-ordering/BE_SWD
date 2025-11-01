@@ -46,13 +46,13 @@ public class FcmService {
      * Send promotional notification to multiple users
      */
     @Transactional
-    public Map<String, Object> sendPromotionalNotification(List<UUID> userIds, String title, String message,
+    public Map<String, Object> sendPromotionalNotification(List<String> userIds, String title, String message,
                                                            String imageUrl, String promoCode) {
         int successCount = 0;
         int failCount = 0;
         List<String> failedUserIds = new ArrayList<>();
 
-        for (UUID userId : userIds) {
+        for (String userId : userIds) {
             Optional<User> userOpt = userRepository.findById(userId);
             if (userOpt.isEmpty() || userOpt.get().getFcmToken() == null) {
                 failCount++;
@@ -135,7 +135,7 @@ public class FcmService {
 
             // Send message
             String response = FirebaseMessaging.getInstance().send(message);
-            log.info("✅ Successfully sent notification to user {}: {}", user.getId(), response);
+            log.info("âœ… Successfully sent notification to user {}: {}", user.getId(), response);
 
             // Save notification history
             saveNotificationHistory(user, order, title, body, type, orderStatus, true, null);
@@ -143,7 +143,7 @@ public class FcmService {
             return true;
 
         } catch (FirebaseMessagingException e) {
-            log.error("❌ Failed to send notification to user {}: {}", user.getId(), e.getMessage());
+            log.error("âŒ Failed to send notification to user {}: {}", user.getId(), e.getMessage());
 
             // Handle invalid token
             String errorCode = e.getMessagingErrorCode() != null ? e.getMessagingErrorCode().name() : "";
@@ -157,7 +157,7 @@ public class FcmService {
 
             return false;
         } catch (Exception e) {
-            log.error("❌ Unexpected error sending notification: {}", e.getMessage());
+            log.error("âŒ Unexpected error sending notification: {}", e.getMessage());
             saveNotificationHistory(user, order, title, body, type, orderStatus, false, e.getMessage());
             return false;
         }
@@ -206,32 +206,32 @@ public class FcmService {
 
         switch (status) {
             case PENDING:
-                message.put("title", "🔔 Order Received");
+                message.put("title", "ðŸ”” Order Received");
                 message.put("body", String.format("Your order #%s has been received. Total: %s", orderId, amount));
                 break;
             case CONFIRMED:
-                message.put("title", "✅ Order Confirmed");
+                message.put("title", "âœ… Order Confirmed");
                 message.put("body", String.format("Order #%s confirmed! Estimated time: 30 mins", orderId));
                 break;
             case PREPARING:
-                message.put("title", "👨‍🍳 Chef is Cooking");
+                message.put("title", "ðŸ‘¨â€ðŸ³ Chef is Cooking");
                 message.put("body", "Chef is preparing your delicious meal!");
                 break;
             case READY:
                 String storeName = order.getStore() != null ? order.getStore().getName() : "the restaurant";
-                message.put("title", "🎉 Order Ready!");
+                message.put("title", "ðŸŽ‰ Order Ready!");
                 message.put("body", String.format("Order #%s is ready for pickup at %s", orderId, storeName));
                 break;
             case COMPLETED:
-                message.put("title", "✨ Enjoy Your Meal!");
+                message.put("title", "âœ¨ Enjoy Your Meal!");
                 message.put("body", "Order delivered! Don't forget to rate your experience");
                 break;
             case CANCELLED:
-                message.put("title", "❌ Order Cancelled");
+                message.put("title", "âŒ Order Cancelled");
                 message.put("body", String.format("Order #%s cancelled. Refund will be processed within 3-5 days", orderId));
                 break;
             default:
-                message.put("title", "📦 Order Update");
+                message.put("title", "ðŸ“¦ Order Update");
                 message.put("body", String.format("Your order #%s status has been updated", orderId));
         }
 
@@ -242,7 +242,7 @@ public class FcmService {
      * Update user FCM token
      */
     @Transactional
-    public void updateFcmToken(UUID userId, String fcmToken, String platform, String deviceId) {
+    public void updateFcmToken(String userId, String fcmToken, String platform, String deviceId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -252,19 +252,19 @@ public class FcmService {
         user.setFcmTokenUpdatedAt(OffsetDateTime.now());
 
         userRepository.save(user);
-        log.info("✅ FCM token updated for user {} on platform {}", userId, platform);
+        log.info("âœ… FCM token updated for user {} on platform {}", userId, platform);
     }
 
     /**
      * Remove user FCM token (on logout)
      */
     @Transactional
-    public void removeFcmToken(UUID userId) {
+    public void removeFcmToken(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         clearUserFcmToken(user);
-        log.info("✅ FCM token removed for user {}", userId);
+        log.info("âœ… FCM token removed for user {}", userId);
     }
 }
 

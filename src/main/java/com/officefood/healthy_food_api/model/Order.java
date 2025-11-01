@@ -11,16 +11,16 @@ import java.util.*;
 @Entity @Table(name="orders")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Order extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition="BINARY(16)")
-    private UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition="VARCHAR(36)")
+    private String id;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="store_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="store_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Store store;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="user_id", nullable=false, columnDefinition="VARCHAR(36)")
     private User user;
 
 

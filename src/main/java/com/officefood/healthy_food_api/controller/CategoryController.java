@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -46,7 +45,7 @@ public class CategoryController extends BaseController<Category, CategoryRequest
 
     // PUT /api/categories/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<CategoryResponse>> update(@PathVariable String id,
                               @Valid @RequestBody CategoryRequest req) {
         Category entity = mapper.toEntity(req);
         entity.setId(id);

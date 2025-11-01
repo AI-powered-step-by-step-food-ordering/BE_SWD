@@ -6,6 +6,6 @@ import jakarta.validation.constraints.*;
 @Data
 public class PromotionRedemptionRequest {
     private String status;
-    @NotNull private java.util.UUID promotionId;
-    @NotNull private java.util.UUID orderId;
+    @NotNull private String promotionId;
+    @NotNull private String orderId;
 }

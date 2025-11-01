@@ -77,13 +77,13 @@ public class AuthServiceImpl implements AuthService {
                         user.getFullName(), user.getEmail(), verificationOtp
                 );
                 if (!emailSent) {
-                    log.error("❌ Failed to send verification OTP email to: {}", user.getEmail());
+                    log.error("Ã¢ÂÅ’ Failed to send verification OTP email to: {}", user.getEmail());
                 } else {
-                    log.info("✅ Verification OTP email sent successfully to: {}", user.getEmail());
+                    log.info("Ã¢Å“â€¦ Verification OTP email sent successfully to: {}", user.getEmail());
                 }
             }
         } catch (Exception e) {
-            log.error("❌ Exception while sending verification OTP email: {}", e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Exception while sending verification OTP email: {}", e.getMessage(), e);
         }
 
         var response = authMapper.toEmailVerificationResponse(user);

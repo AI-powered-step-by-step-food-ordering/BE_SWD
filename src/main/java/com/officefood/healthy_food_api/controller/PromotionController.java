@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/promotions")
@@ -46,7 +45,7 @@ public class PromotionController extends BaseController<Promotion, PromotionRequ
 
     // PUT /api/promotions/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<PromotionResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<PromotionResponse>> update(@PathVariable String id,
                               @Valid @RequestBody PromotionRequest req) {
         Promotion entity = mapper.toEntity(req);
         entity.setId(id);

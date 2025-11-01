@@ -7,11 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Base Controller với các methods chuẩn cho soft delete
+ * Base Controller vÃ¡Â»â€ºi cÃƒÂ¡c methods chuÃ¡ÂºÂ©n cho soft delete
  * @param <T> Entity type extends BaseEntity
  * @param <REQ> Request DTO type
  * @param <RES> Response DTO type
@@ -25,7 +24,7 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     protected abstract T toEntity(REQ request);
 
     /**
-     * GET /getall - Lấy tất cả (bao gồm cả active và inactive)
+     * GET /getall - LÃ¡ÂºÂ¥y tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ (bao gÃ¡Â»â€œm cÃ¡ÂºÂ£ active vÃƒÂ  inactive)
      */
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<List<RES>>> getAll() {
@@ -38,7 +37,7 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * GET /active - Chỉ lấy các records active (isActive = true)
+     * GET /active - ChÃ¡Â»â€° lÃ¡ÂºÂ¥y cÃƒÂ¡c records active (isActive = true)
      */
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<List<RES>>> getAllActive() {
@@ -52,7 +51,7 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * GET /inactive - Chỉ lấy các records inactive (isActive = false)
+     * GET /inactive - ChÃ¡Â»â€° lÃ¡ÂºÂ¥y cÃƒÂ¡c records inactive (isActive = false)
      */
     @GetMapping("/inactive")
     public ResponseEntity<ApiResponse<List<RES>>> getAllInactive() {
@@ -66,10 +65,10 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * GET /getbyid/{id} - Chỉ lấy record active
+     * GET /getbyid/{id} - ChÃ¡Â»â€° lÃ¡ÂºÂ¥y record active
      */
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<RES>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<RES>> getById(@PathVariable String id) {
         return getService()
                 .findById(id)
                 .filter(BaseEntity::getIsActive)
@@ -79,10 +78,10 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * GET /getbyid-include-deleted/{id} - Lấy record kể cả đã xóa mềm
+     * GET /getbyid-include-deleted/{id} - LÃ¡ÂºÂ¥y record kÃ¡Â»Æ’ cÃ¡ÂºÂ£ Ã„â€˜ÃƒÂ£ xÃƒÂ³a mÃ¡Â»Âm
      */
     @GetMapping("/getbyid-include-deleted/{id}")
-    public ResponseEntity<ApiResponse<RES>> getByIdIncludeDeleted(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<RES>> getByIdIncludeDeleted(@PathVariable String id) {
         return getService()
                 .findById(id)
                 .map(this::toResponse)
@@ -91,10 +90,10 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * PUT /soft-delete/{id} - Xóa mềm
+     * PUT /soft-delete/{id} - XÃƒÂ³a mÃ¡Â»Âm
      */
     @PutMapping("/soft-delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable String id) {
         try {
             getService().softDelete(id);
             return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record soft deleted successfully", null));
@@ -104,10 +103,10 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * PUT /restore/{id} - Khôi phục record đã xóa mềm
+     * PUT /restore/{id} - KhÃƒÂ´i phÃ¡Â»Â¥c record Ã„â€˜ÃƒÂ£ xÃƒÂ³a mÃ¡Â»Âm
      */
     @PutMapping("/restore/{id}")
-    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable String id) {
         try {
             getService().restore(id);
             return ResponseEntity.ok(ApiResponse.<Void>success(200, "Record restored successfully", null));
@@ -117,10 +116,10 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * DELETE /delete/{id} - Hard delete (xóa vĩnh viễn)
+     * DELETE /delete/{id} - Hard delete (xÃƒÂ³a vÃ„Â©nh viÃ¡Â»â€¦n)
      */
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> hardDelete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> hardDelete(@PathVariable String id) {
         getService().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Record deleted permanently", null));
     }

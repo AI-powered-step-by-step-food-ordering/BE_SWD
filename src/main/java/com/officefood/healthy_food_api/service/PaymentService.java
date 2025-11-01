@@ -7,6 +7,6 @@ import java.util.*;
 
 public interface PaymentService {
     PaymentTransaction authorize(Order order, PaymentMethod method, double amount);
-    PaymentTransaction capture(Order order, java.util.UUID paymentId);
-    PaymentTransaction refund(Order order, java.util.UUID paymentId, double amount);
+    PaymentTransaction capture(Order order, String paymentId);
+    PaymentTransaction refund(Order order, String paymentId, double amount);
 }

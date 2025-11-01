@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class TemplateStepController {
 
     // GET /api/template_steps/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<TemplateStepResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<TemplateStepResponse>> getById(@PathVariable String id) {
         return sp.templateSteps()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class TemplateStepController {
 
     // PUT /api/template_steps/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<TemplateStepResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<TemplateStepResponse>> update(@PathVariable String id,
                               @Valid @RequestBody TemplateStepRequest req) {
         TemplateStep entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class TemplateStepController {
 
     // DELETE /api/template_steps/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.templateSteps().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Template step deleted successfully", null));
     }

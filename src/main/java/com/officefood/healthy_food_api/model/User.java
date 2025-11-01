@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.officefood.healthy_food_api.model.enums.AccountStatus;
 import com.officefood.healthy_food_api.model.enums.Role;
 import jakarta.persistence.*;
@@ -18,9 +19,9 @@ import java.util.*;
 public class User extends BaseEntity {
     @Id
     @GeneratedValue
-    @UuidGenerator
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition = "VARCHAR(36)")
+    private String id;
 
     @Column(name = "full_name", nullable = false, length = 255)
     private String fullName;
@@ -36,6 +37,7 @@ public class User extends BaseEntity {
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 
     @Column(name = "date_of_birth")
     private java.time.LocalDate dateOfBirth;

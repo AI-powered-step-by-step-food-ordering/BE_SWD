@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/ingredients")
@@ -44,7 +43,7 @@ public class IngredientController extends BaseController<Ingredient, IngredientR
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<IngredientResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<IngredientResponse>> update(@PathVariable String id,
                               @Valid @RequestBody IngredientRequest req) {
         Ingredient entity = mapper.toEntity(req);
         entity.setId(id);

@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/stores")
@@ -44,7 +43,7 @@ public class StoreController extends BaseController<Store, StoreRequest, StoreRe
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<StoreResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<StoreResponse>> update(@PathVariable String id,
                               @Valid @RequestBody StoreRequest req) {
         Store entity = mapper.toEntity(req);
         entity.setId(id);

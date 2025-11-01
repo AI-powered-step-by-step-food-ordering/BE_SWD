@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -80,7 +79,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      */
     @Override
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getById(@PathVariable String id) {
         return sp.users()
                 .findById(id)
                 .filter(User::isAccountActive) // Only ACTIVE users
@@ -94,7 +93,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      * GET /api/users/admin/getbyid/{id}
      */
     @GetMapping("/admin/getbyid/{id}")
-    public ResponseEntity<ApiResponse<com.officefood.healthy_food_api.dto.response.UserAdminResponse>> getByIdForAdmin(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<com.officefood.healthy_food_api.dto.response.UserAdminResponse>> getByIdForAdmin(@PathVariable String id) {
         return sp.users()
                 .findById(id)
                 .map(mapper::toAdminResponse)
@@ -111,7 +110,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
 
     // PUT /api/users/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<UserResponse>> update(@PathVariable String id,
                               @Valid @RequestBody UserUpdateRequest req) {
         try {
             // Get existing user
@@ -157,7 +156,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      */
     @Override
     @PutMapping("/restore/{id}")
-    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> restore(@PathVariable String id) {
         return sp.users().findById(id)
                 .map(user -> {
                     // User-specific restore: set status = ACTIVE and clear deletedAt
@@ -175,7 +174,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      */
     @Override
     @PutMapping("/soft-delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> softDelete(@PathVariable String id) {
         return sp.users().findById(id)
                 .map(user -> {
                     // User-specific soft delete: set status = DELETED and set deletedAt

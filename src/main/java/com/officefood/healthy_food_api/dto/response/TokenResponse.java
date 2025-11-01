@@ -4,8 +4,8 @@ import lombok.*;
 
 @Data
 public class TokenResponse {
-    private java.util.UUID id;
-    private java.util.UUID userId;
+    private String id;
+    private String userId;
     private String accessToken;
     private String refreshToken;
 }

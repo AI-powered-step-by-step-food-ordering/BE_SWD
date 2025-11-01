@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -39,7 +38,7 @@ public class NotificationController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Save or update FCM token for push notifications")
     public ResponseEntity<ApiResponse> saveFcmToken(
-            @PathVariable UUID userId,
+            @PathVariable String userId,
             @Valid @RequestBody FcmTokenRequest request) {
         try {
             fcmService.updateFcmToken(userId, request.getFcmToken(),
@@ -55,7 +54,7 @@ public class NotificationController {
     @DeleteMapping("/users/{userId}/fcm-token")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Remove FCM token (on logout)")
-    public ResponseEntity<ApiResponse> removeFcmToken(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse> removeFcmToken(@PathVariable String userId) {
         try {
             fcmService.removeFcmToken(userId);
             return ResponseEntity.ok(ApiResponse.success("FCM token removed successfully"));
@@ -71,7 +70,7 @@ public class NotificationController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Get user's notification history")
     public ResponseEntity<Page<NotificationResponse>> getUserNotifications(
-            @PathVariable UUID userId,
+            @PathVariable String userId,
             @PageableDefault(size = 20) Pageable pageable) {
         Page<NotificationResponse> notifications = notificationService.getUserNotifications(userId, pageable);
         return ResponseEntity.ok(notifications);
@@ -80,7 +79,7 @@ public class NotificationController {
     @GetMapping("/users/{userId}/notifications/unread")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Get unread notifications")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(@PathVariable UUID userId) {
+    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(@PathVariable String userId) {
         List<NotificationResponse> notifications = notificationService.getUnreadNotifications(userId);
         return ResponseEntity.ok(notifications);
     }
@@ -88,7 +87,7 @@ public class NotificationController {
     @GetMapping("/users/{userId}/notifications/unread-count")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Get unread notification count")
-    public ResponseEntity<Map<String, Long>> getUnreadCount(@PathVariable UUID userId) {
+    public ResponseEntity<Map<String, Long>> getUnreadCount(@PathVariable String userId) {
         long count = notificationService.getUnreadCount(userId);
         return ResponseEntity.ok(Map.of("unreadCount", count));
     }
@@ -96,7 +95,7 @@ public class NotificationController {
     @PutMapping("/notifications/{notificationId}/read")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Mark notification as read")
-    public ResponseEntity<ApiResponse> markAsRead(@PathVariable UUID notificationId) {
+    public ResponseEntity<ApiResponse> markAsRead(@PathVariable String notificationId) {
         try {
             notificationService.markAsRead(notificationId);
             return ResponseEntity.ok(ApiResponse.success("Notification marked as read"));
@@ -109,7 +108,7 @@ public class NotificationController {
     @PutMapping("/users/{userId}/notifications/read-all")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'KITCHEN_STAFF')")
     @Operation(summary = "Mark all notifications as read")
-    public ResponseEntity<ApiResponse> markAllAsRead(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse> markAllAsRead(@PathVariable String userId) {
         try {
             notificationService.markAllAsRead(userId);
             return ResponseEntity.ok(ApiResponse.success("All notifications marked as read"));
@@ -127,9 +126,7 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> sendPromotionalNotification(
             @Valid @RequestBody PromotionalNotificationRequest request) {
         try {
-            List<UUID> userIds = request.getUserIds().stream()
-                    .map(UUID::fromString)
-                    .collect(Collectors.toList());
+            List<String> userIds = request.getUserIds();
 
             Map<String, Object> result = fcmService.sendPromotionalNotification(
                     userIds,

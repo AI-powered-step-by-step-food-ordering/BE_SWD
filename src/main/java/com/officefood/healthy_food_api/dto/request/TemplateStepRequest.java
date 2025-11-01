@@ -9,6 +9,6 @@ public class TemplateStepRequest {
     private Integer maxItems;
     private Double defaultQty;
     private Integer displayOrder;
-    @NotNull private java.util.UUID templateId;
-    @NotNull private java.util.UUID categoryId;
+    @NotNull private String templateId;
+    @NotNull private String categoryId;
 }

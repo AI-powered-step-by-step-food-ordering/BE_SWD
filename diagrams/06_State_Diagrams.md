@@ -1,197 +1,291 @@
-# State Diagrams - Main Objects
+# State Diagrams - Main Objects (Simplified & Enhanced)
 
-## 1. User Account State Diagram
-
-```plantuml
-@startuml
-title User Account State Machine
-
-[*] --> PendingVerification : Register
-
-state PendingVerification {
-  [*] --> AwaitingOTP
-  AwaitingOTP : Entry: Generate OTP
-  AwaitingOTP : Entry: Send verification email
-  AwaitingOTP : otpAttempts = 0
-  
-  AwaitingOTP --> OTPSent : Email sent successfully
-  
-  OTPSent --> AwaitingOTP : Resend OTP requested
-  OTPSent --> [*] : OTP verified
-}
-
-PendingVerification --> Active : Verify OTP\n[OTP valid && not expired]
-
-Active : Entry: Set emailVerified = true
-Active : Entry: Set status = ACTIVE
-Active : Can place orders
-Active : Can update profile
-
-Active --> Active : Update profile
-Active --> Active : Change password
-Active --> Active : Login/Logout
-
-Active --> Suspended : Admin suspends\n[rule violation]
-
-Suspended : Entry: Set status = SUSPENDED
-Suspended : Cannot login
-Suspended : Cannot place orders
-
-Suspended --> Active : Admin reactivates\n[issue resolved]
-
-Active --> Deleted : User deletes account\n[soft delete]
-Active --> Deleted : Admin deletes\n[policy violation]
-
-Deleted : Entry: Set status = DELETED
-Deleted : Entry: Set deletedAt = NOW()
-Deleted : Entry: Clear FCM token
-Deleted : Cannot login
-Deleted : Data retained for audit
-
-state PasswordReset {
-  [*] --> ResetRequested : Forgot password
-  
-  ResetRequested : Entry: Generate reset OTP
-  ResetRequested : Entry: Send reset email
-  
-  ResetRequested --> OTPValidated : Enter valid OTP\n[not expired]
-  
-  OTPValidated --> [*] : Set new password
-  
-  ResetRequested --> [*] : OTP expired\n[after 5 minutes]
-}
-
-Active --> PasswordReset : Request password reset
-PasswordReset --> Active : Password reset successful
-
-PendingVerification --> Deleted : Never verified\n[after 30 days]
-
-note right of PendingVerification
-  - OTP valid for 5 minutes
-  - Max 5 attempts
-  - Can resend OTP
-end note
-
-note right of Active
-  - Can perform all user actions
-  - FCM token saved on login
-  - FCM token removed on logout
-end note
-
-note right of Deleted
-  - Soft delete (deletedAt != null)
-  - Cannot be reactivated
-  - Email can be reused after 90 days
-end note
-
-@enduml
-```
-
-## 2. Order State Diagram
+## 1. Order State Machine (Primary Focus)
 
 ```plantuml
 @startuml
-title Order State Machine
-
-[*] --> Pending : Create order
-
-Pending : Entry: Create order record
-Pending : Entry: Create bowl items
-Pending : Entry: Calculate totals
-Pending : Entry: Send "Order Received" notification
-Pending : Waiting for admin/staff confirmation
-
-Pending --> Confirmed : Admin confirms\n[order valid]
-Pending --> Cancelled : Customer cancels\n[before confirmation]
-Pending --> Cancelled : Admin rejects\n[invalid order / store closed]
-
-Confirmed : Entry: Send "Order Confirmed" notification
-Confirmed : Entry: Create kitchen job
-Confirmed : Estimated time: 30 mins
-Confirmed : Payment may be pending
-
-state Confirmed {
-  [*] --> AwaitingPayment
-  AwaitingPayment --> PaymentCompleted : Payment received
-  PaymentCompleted --> [*]
+skinparam state {
+  BackgroundColor<<Pending>> #FFF4E6
+  BackgroundColor<<Confirmed>> #E3F2FD
+  BackgroundColor<<Preparing>> #FFF9C4
+  BackgroundColor<<Ready>> #C8E6C9
+  BackgroundColor<<Completed>> #A5D6A7
+  BackgroundColor<<Cancelled>> #FFCDD2
+  BorderColor DarkSlateGray
+  FontName Arial
 }
 
-Confirmed --> Preparing : Kitchen starts preparation\n[payment completed]
-Confirmed --> Cancelled : Customer cancels\n[cancellation allowed]
+title Order Status State Machine
 
-Preparing : Entry: Send "Chef is preparing" notification
-Preparing : Entry: Update kitchen job = IN_PROGRESS
-Preparing : Kitchen staff preparing meal
-Preparing : Inventory being used
+[*] --> PENDING : Create order
 
-Preparing --> Ready : Preparation completed\n[kitchen job done]
-Preparing --> Cancelled : Cannot complete\n[ingredient unavailable]
+state PENDING <<Pending>> {
+  PENDING : Entry: Calculate totals
+  PENDING : Entry: Send "Order Received" notification
+  PENDING : Waiting for confirmation
+}
 
-Ready : Entry: Send "Ready for pickup" notification
-Ready : Entry: Update kitchen job = COMPLETED
-Ready : Waiting for customer pickup
-Ready : Order packaged
+PENDING --> CONFIRMED : Admin confirms order
+PENDING --> CANCELLED : Customer/Admin cancels
 
-Ready --> Completed : Customer picks up\n[staff confirms]
-Ready --> Cancelled : Customer no-show\n[after 1 hour timeout]
+state CONFIRMED <<Confirmed>> {
+  CONFIRMED : Entry: Create kitchen job
+  CONFIRMED : Entry: Send "Order Confirmed" notification
+  CONFIRMED : Payment processing
+}
 
-Completed : Entry: Send "Enjoy meal" notification
-Completed : Entry: Deduct inventory stock
-Completed : Entry: Record completion time
-Completed : Can be rated by customer
-Completed : Final state (terminal)
+CONFIRMED --> PREPARING : Kitchen starts preparation
+CONFIRMED --> CANCELLED : Customer cancels
 
-Cancelled : Entry: Send cancellation notification
-Cancelled : Entry: Cancel kitchen job (if exists)
-Cancelled : Entry: Initiate refund (if paid)
-Cancelled : Reason recorded
-Cancelled : Final state (terminal)
+state PREPARING <<Preparing>> {
+  PREPARING : Entry: Send "Chef is preparing" notification
+  PREPARING : Entry: Update kitchen job = IN_PROGRESS
+  PREPARING : Food being cooked
+}
 
-Pending --> Cancelled : Auto-cancel\n[no action after 15 mins]
+PREPARING --> READY : Preparation completed
+PREPARING --> CANCELLED : Cannot complete
 
-note right of Pending
-  - Initial state after creation
-  - subtotalAmount, totalAmount calculated
-  - Can apply promotion code
+state READY <<Ready>> {
+  READY : Entry: Send "Ready for pickup" notification
+  READY : Entry: Mark kitchen job = COMPLETED
+  READY : Waiting for customer (1 hour)
+}
+
+READY --> COMPLETED : Customer picks up order
+READY --> CANCELLED : Customer no-show (timeout)
+
+state COMPLETED <<Completed>> {
+  COMPLETED : Entry: Deduct inventory
+  COMPLETED : Entry: Send "Enjoy meal" notification
+  COMPLETED : Terminal state
+}
+
+state CANCELLED <<Cancelled>> {
+  CANCELLED : Entry: Send cancellation notification
+  CANCELLED : Entry: Cancel kitchen job
+  CANCELLED : Entry: Refund if paid
+  CANCELLED : Terminal state
+}
+
+COMPLETED --> [*]
+CANCELLED --> [*]
+
+note right of PENDING
+  Initial State
+  - Can apply promotion
   - Can cancel freely
+  - Auto-cancel after 15 mins
 end note
 
-note right of Confirmed
-  - Cannot be cancelled after kitchen starts
-  - Payment processing
+note right of CONFIRMED
+  Processing
   - Kitchen job created
+  - Payment may be pending
+  - Limited cancellation
 end note
 
-note right of Preparing
-  - Active kitchen job
-  - Staff working on order
-  - Inventory being reserved
+note right of PREPARING
+  Active Cooking
+  - Staff working
+  - Inventory reserved
+  - No cancellation
 end note
 
-note right of Ready
-  - Order packaged and ready
+note right of READY
+  Awaiting Pickup
+  - Order packaged
+  - 1 hour window
   - Customer notified
-  - 1 hour pickup window
 end note
 
-note right of Completed
-  - Terminal state
+note right of COMPLETED
+  Success Terminal State
   - Inventory deducted
-  - Can receive rating
+  - Can be rated
   - Payment finalized
 end note
 
-note right of Cancelled
-  - Terminal state
-  - Cancellation reason recorded
-  - Refund processed if applicable
+note right of CANCELLED
+  Failure Terminal State
+  - Reason recorded
+  - Refund processed
   - Inventory released
 end note
 
 @enduml
 ```
 
-## 3. Payment Transaction State Diagram
+## 2. Payment Transaction State Machine (ZaloPay Integration)
+
+```plantuml
+@startuml
+skinparam state {
+  BackgroundColor<< Pending >> #FFF4E6
+  BackgroundColor<< Initiated >> #E3F2FD
+  BackgroundColor<< Processing >> #BBDEFB
+  BackgroundColor<< Completed >> #C8E6C9
+  BackgroundColor<< Failed >> #FFCDD2
+  BackgroundColor<< Refunded >> #F0F0F0
+  BackgroundColor #FFFFFF
+  BorderColor DarkSlateGray
+  FontName Arial
+}
+
+title Payment Transaction State Machine
+
+[*] --> PENDING : Create payment
+
+PENDING<< Pending >> : Entry: Generate transactionId
+PENDING : Entry: Build ZaloPay request
+PENDING : Waiting for payment URL
+
+PENDING --> INITIATED : ZaloPay order created\n(payment URL received)
+
+INITIATED<< Initiated >> : Entry: Save zpTransToken
+INITIATED : Entry: Send payment URL to customer
+INITIATED : Customer redirected to ZaloPay
+
+INITIATED --> PROCESSING : Customer submits payment
+INITIATED --> EXPIRED : Timeout (15 minutes)
+
+PROCESSING<< Processing >> : Customer authenticated
+PROCESSING : ZaloPay validating payment
+PROCESSING : Checking account balance
+
+PROCESSING --> COMPLETED : Payment successful\n(callback received)
+PROCESSING --> FAILED : Payment failed\n(insufficient funds)
+
+COMPLETED<< Completed >> : Entry: Verify callback MAC
+COMPLETED : Entry: Save zpTransId
+COMPLETED : Entry: Update order paymentStatus = PAID
+COMPLETED : Terminal state (success)
+
+FAILED<< Failed >> : Entry: Save failure reason
+FAILED : Customer can retry
+FAILED : Order remains unpaid
+
+FAILED --> PENDING : Create new transaction\n(retry payment)
+
+EXPIRED<< Failed >> : Entry: ZaloPay order expired
+EXPIRED : No callback received
+
+EXPIRED --> PENDING : Create new transaction\n(retry payment)
+
+state "Refund Process" as REFUND {
+  [*] --> RefundPending
+  
+  RefundPending : Call ZaloPay refund API
+  RefundPending : Waiting 3-5 business days
+  
+  RefundPending --> RefundCompleted : Refund successful
+  RefundPending --> RefundFailed : Refund failed
+  
+  RefundCompleted : Funds returned
+  RefundCompleted : Customer notified
+  
+  RefundFailed : Alert admin
+  RefundFailed : Manual intervention
+  
+  RefundCompleted --> [*]
+  RefundFailed --> [*]
+}
+
+COMPLETED --> REFUND : Order cancelled\n(after payment)
+
+REFUND --> REFUNDED : Refund completed
+
+REFUNDED<< Refunded >> : Entry: Update refund status
+REFUNDED : Money returned to customer
+REFUNDED : Transaction closed
+
+COMPLETED --> [*]
+REFUNDED --> [*]
+
+note right of PENDING
+  **Initial State**
+  • transactionId format:
+    YYMMDD_orderId
+  • Ready for ZaloPay API
+end note
+
+note right of INITIATED
+  **Payment URL Ready**
+  • zpTransToken received
+  • Valid for 15 minutes
+end note
+
+note right of PROCESSING
+  **Payment In Progress**
+  • Customer in ZaloPay
+  • Awaiting callback
+  • Cannot cancel
+end note
+
+note right of COMPLETED
+  **Payment Success**
+  • Callback MAC verified
+  • Order marked as paid
+  • Can only be refunded
+end note
+
+note bottom of FAILED
+  **Payment Failed**
+  • Failure reason saved
+  • Can retry with new transaction
+end note
+
+note bottom of REFUNDED
+  **Money Returned**
+  • Refund completed
+  • Transaction finalized
+  • Terminal state
+end note
+
+@enduml
+```
+
+---
+
+## State Transition Rules
+
+### Order State Transitions
+
+| From State | To State | Trigger | API Endpoint |
+|------------|----------|---------|--------------|
+| PENDING | CONFIRMED | Admin confirms | `POST /api/orders/confirm/{id}` |
+| PENDING | CANCELLED | User/Admin cancels | `POST /api/orders/cancel/{id}` |
+| CONFIRMED | PREPARING | Kitchen starts | Internal system |
+| PREPARING | READY | Preparation done | Internal system |
+| READY | COMPLETED | Customer pickup | `POST /api/orders/complete/{id}` |
+| Any State | CANCELLED | Special conditions | `POST /api/orders/cancel/{id}` |
+
+### Payment State Transitions
+
+| From State | To State | Trigger | API Endpoint |
+|------------|----------|---------|--------------|
+| PENDING | INITIATED | ZaloPay response | `POST /api/zalopay/create-payment` |
+| INITIATED | PROCESSING | Customer action | External (ZaloPay) |
+| PROCESSING | COMPLETED | ZaloPay callback | `POST /api/zalopay/callback` |
+| PROCESSING | FAILED | ZaloPay callback | `POST /api/zalopay/callback` |
+| COMPLETED | REFUND | Order cancelled | `POST /api/zalopay/refund` |
+
+---
+
+## Key Features
+
+✅ **Clear State Transitions** - Well-defined triggers and conditions
+🎨 **Color-Coded States** - Easy visual identification
+🔔 **Notification Integration** - Automatic notifications on state change
+🔒 **Security Validation** - MAC signature verification for payments
+📊 **Audit Trail** - All state changes are logged
+⏰ **Timeout Handling** - Auto-cancellation for expired states
+
+---
+
+## Additional State Diagrams (Optional Reference)
+
+### 3. Payment Transaction State Diagram (Detailed Version - Legacy)
 
 ```plantuml
 @startuml

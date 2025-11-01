@@ -8,19 +8,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class NotificationResponse {
-    private UUID id;
+    private String id;
     private String title;
     private String body;
     private NotificationType type;
     private OrderStatus orderStatus;
-    private UUID orderId;
+    private String orderId;
     private OffsetDateTime sentAt;
     private OffsetDateTime readAt;
     private Boolean isRead;

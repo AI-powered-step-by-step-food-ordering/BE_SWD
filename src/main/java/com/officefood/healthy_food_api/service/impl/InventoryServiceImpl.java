@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,12 +15,12 @@ public class InventoryServiceImpl extends CrudServiceImpl<Inventory> implements 
     private final InventoryRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Inventory, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Inventory, String> repo() {
         return repository;
     }
 
-    @Override public void reserveForOrder(UUID orderId) { /* TODO */ }
-    @Override public void consumeForOrder(UUID orderId) { /* TODO */ }
-    @Override public void returnForCancelledOrder(UUID orderId) { /* TODO */ }
+    @Override public void reserveForOrder(String orderId) { /* TODO */ }
+    @Override public void consumeForOrder(String orderId) { /* TODO */ }
+    @Override public void returnForCancelledOrder(String orderId) { /* TODO */ }
 
 }

@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,7 +15,7 @@ public class ZaloPayCreateOrderResponse {
     private String orderUrl;
     private String zpTransToken;
     private String appTransId;
-    private UUID paymentTransactionId;  // ID của PaymentTransaction trong database
+    private String paymentTransactionId;  // ID của PaymentTransaction trong database
     private Double amount;  // Số tiền thanh toán
 }
 

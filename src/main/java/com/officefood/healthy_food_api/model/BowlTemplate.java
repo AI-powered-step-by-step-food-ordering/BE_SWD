@@ -9,9 +9,9 @@ import java.util.*;
 @Entity @Table(name="bowls_template")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class BowlTemplate extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition="BINARY(16)")
-    private UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition="VARCHAR(36)")
+    private String id;
 
     @Column(nullable=false, length=150)
     private String name;

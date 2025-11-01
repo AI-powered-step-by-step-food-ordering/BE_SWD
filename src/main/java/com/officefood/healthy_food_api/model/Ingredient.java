@@ -9,15 +9,15 @@ import java.util.*;
 @Entity @Table(name="ingredients")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class Ingredient extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition = "VARCHAR(36)")
+    private String id;
 
     @Column(nullable=false, length=150)
     private String name;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="category_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="category_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Category category;
 
     // Đơn vị đo (gram, ml, piece, etc.)

@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.util.UUID;
-
 /**
  * Entity để định nghĩa các ràng buộc giữa ingredients
  * Ví dụ: Cơm chiên không được có cá, Sushi không được có mayonaise
@@ -14,16 +12,16 @@ import java.util.UUID;
 @Entity @Table(name="ingredient_restrictions")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class IngredientRestriction extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition = "VARCHAR(36)")
+    private String id;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="primary_ingredient_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="primary_ingredient_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Ingredient primaryIngredient; // Ingredient chính (ví dụ: cơm chiên)
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="restricted_ingredient_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="restricted_ingredient_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Ingredient restrictedIngredient; // Ingredient bị hạn chế (ví dụ: cá)
 
     @Enumerated(EnumType.STRING)

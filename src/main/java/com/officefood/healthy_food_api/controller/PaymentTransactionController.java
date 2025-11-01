@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class PaymentTransactionController {
 
     // GET /api/payment_transactions/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> getById(@PathVariable String id) {
         return sp.payments()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class PaymentTransactionController {
 
     // PUT /api/payment_transactions/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<PaymentTransactionResponse>> update(@PathVariable String id,
                               @Valid @RequestBody PaymentTransactionRequest req) {
         PaymentTransaction entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,14 +61,14 @@ public class PaymentTransactionController {
 
     // DELETE /api/payment_transactions/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.payments().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction deleted successfully", null));
     }
 
     // GET /api/payment_transactions/user/{userId} - Get payment history by user ID
     @GetMapping("/payment-history/{userId}")
-    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getByUserId(@PathVariable String userId) {
         List<PaymentTransactionResponse> transactions = sp.payments()
                  .findByUserId(userId)
                  .stream()

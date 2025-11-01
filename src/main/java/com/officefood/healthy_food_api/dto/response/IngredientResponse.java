@@ -5,12 +5,12 @@ import java.time.ZonedDateTime;
 
 @Data
 public class IngredientResponse {
-    private java.util.UUID id;
+    private String id;
     private String name;
     private String unit; // VD: "g", "ml", "piece"
     private Double standardQuantity; // VD: 100, 50
-    private Double unitPrice; // Giá cho standardQuantity
-    private java.util.UUID categoryId;
+    private Double unitPrice; // GiÃƒÂ¡ cho standardQuantity
+    private String categoryId;
     private String imageUrl;
     private boolean active;
     private ZonedDateTime createdAt;

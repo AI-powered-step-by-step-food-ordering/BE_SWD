@@ -8,6 +8,6 @@ public class InventoryRequest {
     @NotBlank private String action;
     private Double quantityChange;
     private String note;
-    @NotNull private java.util.UUID storeId;
-    @NotNull private java.util.UUID ingredientId;
+    @NotNull private String storeId;
+    @NotNull private String ingredientId;
 }

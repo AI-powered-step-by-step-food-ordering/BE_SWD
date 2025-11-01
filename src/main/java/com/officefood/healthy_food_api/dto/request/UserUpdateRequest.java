@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ public class UserUpdateRequest {
     @NotBlank private String email;
     private String goalCode;
     private String imageUrl;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
     private String address;
     private String phone;

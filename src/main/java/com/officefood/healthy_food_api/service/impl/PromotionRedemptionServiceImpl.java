@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,10 +15,10 @@ public class PromotionRedemptionServiceImpl extends CrudServiceImpl<PromotionRed
     private final PromotionRedemptionRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<PromotionRedemption, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<PromotionRedemption, String> repo() {
         return repository;
     }
 
-    @Override public void voidRedemption(UUID redemptionId) { repository.findById(redemptionId).orElseThrow(); /* TODO */ }
+    @Override public void voidRedemption(String redemptionId) { repository.findById(redemptionId).orElseThrow(); /* TODO */ }
 
 }

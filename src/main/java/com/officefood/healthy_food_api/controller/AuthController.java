@@ -25,7 +25,7 @@ public class AuthController {
     private final AuthMapper mapper;
 
     @PostMapping(value = "/register", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Đăng ký", requestBody = @RequestBody(required = true,
+    @Operation(requestBody = @RequestBody(required = true,
             content = @Content(schema = @Schema(implementation = RegisterRequest.class))))
     public ResponseEntity<ApiResponse<EmailVerificationResponse>> register(@Valid @org.springframework.web.bind.annotation.RequestBody RegisterRequest req) {
         var result = sp.auth().register(req);
@@ -33,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Đăng nhập", requestBody = @RequestBody(required = true,
+    @Operation(requestBody = @RequestBody(required = true,
             content = @Content(schema = @Schema(implementation = LoginRequest.class))))
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @org.springframework.web.bind.annotation.RequestBody LoginRequest req) {
         var result = sp.auth().login(req);
@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/refresh", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Làm mới token", requestBody = @RequestBody(required = true,
+    @Operation(requestBody = @RequestBody(required = true,
             content = @Content(schema = @Schema(implementation = RefreshTokenRequest.class))))
     public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@Valid @org.springframework.web.bind.annotation.RequestBody RefreshTokenRequest req) {
         var result = sp.auth().refreshToken(req);
@@ -55,7 +55,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/verify-otp", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Xác thực email bằng OTP", description = "Xác thực email bằng mã OTP 6 chữ số")
+    @Operation()
     public ResponseEntity<ApiResponse<EmailVerificationResponse>> verifyOtp(
             @Valid @org.springframework.web.bind.annotation.RequestBody VerifyOtpRequest request) {
         var result = sp.auth().verifyOtp(request);
@@ -63,21 +63,21 @@ public class AuthController {
     }
 
     @PostMapping("/resend-verification-otp")
-    @Operation(summary = "Gửi lại mã OTP xác thực", description = "Gửi lại OTP xác thực email cho người dùng")
+    @Operation()
     public ResponseEntity<ApiResponse<EmailVerificationResponse>> resendVerificationOtp(@RequestParam String email) {
         var result = sp.auth().resendVerificationOtp(email);
         return ResponseEntity.ok(ApiResponse.success(200, "Verification OTP sent successfully", result));
     }
 
     @PostMapping(value = "/forgot-password", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Quên mật khẩu", description = "Gửi OTP đặt lại mật khẩu tới email")
+    @Operation()
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @org.springframework.web.bind.annotation.RequestBody ForgotPasswordRequest request) {
         sp.auth().forgotPassword(request);
         return ResponseEntity.ok(ApiResponse.success(200, "Password reset OTP sent successfully", null));
     }
 
     @PostMapping(value = "/reset-password", consumes = "application/json", produces = "application/json")
-    @Operation(summary = "Đặt lại mật khẩu", description = "Đặt lại mật khẩu bằng OTP 6 chữ số")
+    @Operation()
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @org.springframework.web.bind.annotation.RequestBody ResetPasswordRequest request) {
         sp.auth().resetPassword(request);
         return ResponseEntity.ok(ApiResponse.success(200, "Password reset successfully", null));

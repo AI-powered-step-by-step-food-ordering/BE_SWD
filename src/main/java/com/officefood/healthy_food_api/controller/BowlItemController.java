@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -36,7 +35,7 @@ public class BowlItemController {
 
     // GET /api/bowl_items/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<BowlItemResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<BowlItemResponse>> getById(@PathVariable String id) {
         return sp.bowlItems()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -44,10 +43,10 @@ public class BowlItemController {
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl item not found")));
     }
 
-    // POST /api/bowl_items/create - với validation ràng buộc ingredients
+    // POST /api/bowl_items/create - vÃ¡Â»â€ºi validation rÃƒÂ ng buÃ¡Â»â„¢c ingredients
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<BowlItemResponse>> create(@Valid @RequestBody BowlItemRequest req) {
-        // Validate ingredient restrictions trước khi tạo
+        // Validate ingredient restrictions trÃ†Â°Ã¡Â»â€ºc khi tÃ¡ÂºÂ¡o
         IngredientValidationResult validationResult = sp.ingredientRestrictions()
                 .validateIngredientAddition(req.getBowlId(), req.getIngredientId());
 
@@ -61,7 +60,7 @@ public class BowlItemController {
 
     // PUT /api/bowl_items/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<BowlItemResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<BowlItemResponse>> update(@PathVariable String id,
                               @Valid @RequestBody BowlItemRequest req) {
         BowlItem entity = mapper.toEntity(req);
         entity.setId(id);
@@ -71,7 +70,7 @@ public class BowlItemController {
 
     // DELETE /api/bowl_items/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.bowlItems().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Bowl item deleted successfully", null));
     }

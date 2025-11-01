@@ -4,9 +4,9 @@ import lombok.*;
 
 @Data
 public class BowlItemResponse {
-    private java.util.UUID id;
-    private java.util.UUID bowlId;
-    private java.util.UUID ingredientId;
+    private String id;
+    private String bowlId;
+    private String ingredientId;
     private Double quantity;
     private Double unitPrice;
 }

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,7 +34,7 @@ public class PromotionRedemptionController {
 
     // GET /api/promotion_redemptions/getbyid/{id}
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<PromotionRedemptionResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<PromotionRedemptionResponse>> getById(@PathVariable String id) {
         return sp.promotionRedemptions()
                  .findById(id)
                  .map(mapper::toResponse)
@@ -52,7 +51,7 @@ public class PromotionRedemptionController {
 
     // PUT /api/promotion_redemptions/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<PromotionRedemptionResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<PromotionRedemptionResponse>> update(@PathVariable String id,
                               @Valid @RequestBody PromotionRedemptionRequest req) {
         PromotionRedemption entity = mapper.toEntity(req);
         entity.setId(id);
@@ -62,7 +61,7 @@ public class PromotionRedemptionController {
 
     // DELETE /api/promotion_redemptions/delete/{id}
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.promotionRedemptions().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Promotion redemption deleted successfully", null));
     }

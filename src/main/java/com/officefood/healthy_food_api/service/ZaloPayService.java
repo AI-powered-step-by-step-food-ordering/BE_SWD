@@ -5,7 +5,6 @@ import com.officefood.healthy_food_api.dto.request.ZaloPayCreateOrderRequest;
 import com.officefood.healthy_food_api.dto.response.ZaloPayCallbackResponse;
 import com.officefood.healthy_food_api.dto.response.ZaloPayCreateOrderResponse;
 
-import java.util.UUID;
 
 public interface ZaloPayService {
     /**
@@ -28,11 +27,11 @@ public interface ZaloPayService {
      * @param paymentTransactionId Payment transaction ID
      * @param forceStatus Optional: 1 = force SUCCESS, 2 = force FAIL, null = query ZaloPay
      */
-    void updatePaymentStatus(UUID paymentTransactionId, Integer forceStatus) throws Exception;
+    void updatePaymentStatus(String paymentTransactionId, Integer forceStatus) throws Exception;
 
     /**
      * Refund a payment
      */
-    String refundPayment(UUID paymentTransactionId, Double amount, String description) throws Exception;
+    String refundPayment(String paymentTransactionId, Double amount, String description) throws Exception;
 }
 

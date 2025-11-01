@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,7 +33,7 @@ public class IngredientRestrictionController {
     }
 
     @GetMapping("/getbyid/{id}")
-    public ResponseEntity<ApiResponse<IngredientRestrictionResponse>> getById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<IngredientRestrictionResponse>> getById(@PathVariable String id) {
         return sp.ingredientRestrictions()
                 .findById(id)
                 .map(mapper::toResponse)
@@ -49,7 +48,7 @@ public class IngredientRestrictionController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<IngredientRestrictionResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<IngredientRestrictionResponse>> update(@PathVariable String id,
                               @Valid @RequestBody IngredientRestrictionRequest req) {
         IngredientRestriction entity = mapper.toEntity(req);
         entity.setId(id);
@@ -58,24 +57,24 @@ public class IngredientRestrictionController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.ingredientRestrictions().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Ingredient restriction deleted successfully", null));
     }
 
-    // API để validate ingredient trước khi thêm vào bowl
+    // API Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ validate ingredient trÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºc khi thÃƒÆ’Ã‚Âªm vÃƒÆ’Ã‚Â o bowl
     @PostMapping("/validate-addition")
     public ResponseEntity<ApiResponse<IngredientValidationResult>> validateIngredientAddition(
-            @RequestParam UUID bowlId,
-            @RequestParam UUID ingredientId) {
+            @RequestParam String bowlId,
+            @RequestParam String ingredientId) {
         IngredientValidationResult result = sp.ingredientRestrictions().validateIngredientAddition(bowlId, ingredientId);
         return ResponseEntity.ok(ApiResponse.success(200, "Validation completed", result));
     }
 
-    // API để lấy danh sách ingredients bị restrict trong bowl
+    // API Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚Â»Ã†â€™ lÃƒÂ¡Ã‚ÂºÃ‚Â¥y danh sÃƒÆ’Ã‚Â¡ch ingredients bÃƒÂ¡Ã‚Â»Ã¢â‚¬Â¹ restrict trong bowl
     @GetMapping("/restricted-ingredients/{bowlId}")
-    public ResponseEntity<ApiResponse<List<UUID>>> getRestrictedIngredients(@PathVariable UUID bowlId) {
-        List<UUID> restrictedIds = sp.ingredientRestrictions().getRestrictedIngredientsForBowl(bowlId);
+    public ResponseEntity<ApiResponse<List<String>>> getRestrictedIngredients(@PathVariable String bowlId) {
+        List<String> restrictedIds = sp.ingredientRestrictions().getRestrictedIngredientsForBowl(bowlId);
         return ResponseEntity.ok(ApiResponse.success(200, "Restricted ingredients retrieved successfully", restrictedIds));
     }
 }

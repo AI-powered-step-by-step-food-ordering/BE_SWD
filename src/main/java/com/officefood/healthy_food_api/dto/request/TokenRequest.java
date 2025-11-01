@@ -8,5 +8,5 @@ public class TokenRequest {
     @NotBlank private String accessToken;
     private String refreshToken;
     private java.time.OffsetDateTime expiresAt;
-    @NotNull private java.util.UUID userId;
+    @NotNull private String userId;
 }

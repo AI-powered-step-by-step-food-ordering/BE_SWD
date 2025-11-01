@@ -5,7 +5,7 @@ import java.time.ZonedDateTime;
 
 @Data
 public class StoreResponse {
-    private java.util.UUID id;
+    private String id;
     private String name;
     private String address;
     private String phone;

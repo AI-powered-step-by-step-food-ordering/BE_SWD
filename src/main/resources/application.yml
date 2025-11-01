@@ -14,7 +14,11 @@ spring:
   jackson:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
+      WRITE_DATE_KEYS_AS_TIMESTAMPS: false
+    deserialization:
+      ADJUST_DATES_TO_CONTEXT_TIME_ZONE: false
     time-zone: Asia/Ho_Chi_Minh
+    date-format: yyyy-MM-dd
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -58,7 +62,7 @@ zalopay:
   key2: ${ZALOPAY_KEY2:kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz}
   endpoint: ${ZALOPAY_ENDPOINT:https://sb-openapi.zalopay.vn/v2/create}
   callback-url: ${ZALOPAY_CALLBACK_URL:http://cinezone.info:4458/api/zalopay/callback}
-  redirect-url: ${ZALOPAY_REDIRECT_URL:https://localhost:3000/checkout/success}
+  redirect-url: ${ZALOPAY_REDIRECT_URL:http://localhost:3000/checkout/success}
 
 firebase:
   config:

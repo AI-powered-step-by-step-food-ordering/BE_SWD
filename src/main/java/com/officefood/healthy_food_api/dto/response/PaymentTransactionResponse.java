@@ -4,8 +4,8 @@ import lombok.*;
 
 @Data
 public class PaymentTransactionResponse {
-    private java.util.UUID id;
-    private java.util.UUID orderId;
+    private String id;
+    private String orderId;
     private String method;
     private String status;
     private Double amount;

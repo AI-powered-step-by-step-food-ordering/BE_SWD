@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +15,7 @@ public class PromotionServiceImpl extends CrudServiceImpl<Promotion> implements 
     private final PromotionRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Promotion, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Promotion, String> repo() {
         return repository;
     }
 

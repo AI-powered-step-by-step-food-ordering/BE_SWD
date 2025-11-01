@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/zalopay")
@@ -78,7 +77,7 @@ public class ZaloPayController {
                       "Optional forceStatus parameter: 1 = force SUCCESS (CAPTURED), 2 = force FAIL"
     )
     public ResponseEntity<ApiResponse<String>> updatePaymentStatus(
-            @PathVariable UUID paymentTransactionId,
+            @PathVariable String paymentTransactionId,
             @RequestParam(required = false) Integer forceStatus) {
         try {
             log.info("Update payment status request - paymentId: {}, forceStatus: {}",
@@ -115,7 +114,7 @@ public class ZaloPayController {
     @PostMapping("/refund/{paymentTransactionId}")
     @Operation(summary = "Refund payment", description = "Refund a ZaloPay payment")
     public ResponseEntity<ApiResponse<String>> refundPayment(
-            @PathVariable UUID paymentTransactionId,
+            @PathVariable String paymentTransactionId,
             @RequestParam Double amount,
             @RequestParam(required = false) String description) {
         try {

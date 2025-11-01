@@ -5,9 +5,9 @@ import java.time.ZonedDateTime;
 
 @Data
 public class InventoryResponse {
-    private java.util.UUID id;
-    private java.util.UUID storeId;
-    private java.util.UUID ingredientId;
+    private String id;
+    private String storeId;
+    private String ingredientId;
     private String action;
     private Double quantityChange;
     private Double balanceAfter;

@@ -5,9 +5,9 @@ import java.time.ZonedDateTime;
 
 @Data
 public class BowlResponse {
-    private java.util.UUID id;
-    private java.util.UUID orderId;
-    private java.util.UUID templateId;
+    private String id;
+    private String orderId;
+    private String templateId;
     private String name;
     private String instruction;
     private Double linePrice;

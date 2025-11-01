@@ -47,12 +47,12 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendVerificationOtpEmail(String customerName, String customerEmail, String verificationOtp) {
         try {
-            log.info("🔄 Starting sendVerificationOtpEmail process...");
-            log.info("📧 Customer Email: {}", customerEmail);
-            log.info("👤 Customer Name: {}", customerName);
-            log.info("🔢 OTP: {}", verificationOtp);
-            log.info("🌐 Website URL: {}", websiteUrl);
-            log.info("📨 From Email: {}", fromEmail);
+            log.info("Ã°Å¸â€â€ž Starting sendVerificationOtpEmail process...");
+            log.info("Ã°Å¸â€œÂ§ Customer Email: {}", customerEmail);
+            log.info("Ã°Å¸â€˜Â¤ Customer Name: {}", customerName);
+            log.info("Ã°Å¸â€Â¢ OTP: {}", verificationOtp);
+            log.info("Ã°Å¸Å’Â Website URL: {}", websiteUrl);
+            log.info("Ã°Å¸â€œÂ¨ From Email: {}", fromEmail);
 
             Map<String, Object> variables = new HashMap<>();
             variables.put("customerName", customerName);
@@ -70,10 +70,10 @@ public class EmailServiceImpl implements EmailService {
                 variables
             );
 
-            log.info("📬 OTP email send result: {}", result);
+            log.info("Ã°Å¸â€œÂ¬ OTP email send result: {}", result);
             return result;
         } catch (Exception e) {
-            log.error("❌ Exception in sendVerificationOtpEmail: {}", e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Exception in sendVerificationOtpEmail: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -81,10 +81,10 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendPasswordResetOtpEmail(String customerName, String customerEmail, String otp) {
         try {
-            log.info("🔄 Starting sendPasswordResetOtpEmail process...");
-            log.info("📧 Customer Email: {}", customerEmail);
-            log.info("👤 Customer Name: {}", customerName);
-            log.info("🔢 OTP: {}", otp);
+            log.info("Ã°Å¸â€â€ž Starting sendPasswordResetOtpEmail process...");
+            log.info("Ã°Å¸â€œÂ§ Customer Email: {}", customerEmail);
+            log.info("Ã°Å¸â€˜Â¤ Customer Name: {}", customerName);
+            log.info("Ã°Å¸â€Â¢ OTP: {}", otp);
 
             Map<String, Object> variables = new HashMap<>();
             variables.put("customerName", customerName);
@@ -101,10 +101,10 @@ public class EmailServiceImpl implements EmailService {
                     "email/password-reset-otp",
                     variables
             );
-            log.info("📬 Password reset OTP email send result: {}", result);
+            log.info("Ã°Å¸â€œÂ¬ Password reset OTP email send result: {}", result);
             return result;
         } catch (Exception e) {
-            log.error("❌ Exception in sendPasswordResetOtpEmail: {}", e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Exception in sendPasswordResetOtpEmail: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -112,9 +112,9 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendWelcomeEmail(String customerName, String customerEmail) {
         try {
-            log.info("🔄 Starting sendWelcomeEmail process...");
-            log.info("📧 Customer Email: {}", customerEmail);
-            log.info("👤 Customer Name: {}", customerName);
+            log.info("Ã°Å¸â€â€ž Starting sendWelcomeEmail process...");
+            log.info("Ã°Å¸â€œÂ§ Customer Email: {}", customerEmail);
+            log.info("Ã°Å¸â€˜Â¤ Customer Name: {}", customerName);
 
             // Prepare template variables
             Map<String, Object> variables = new HashMap<>();
@@ -132,11 +132,11 @@ public class EmailServiceImpl implements EmailService {
                 variables
             );
 
-            log.info("📬 Welcome email send result: {}", result);
+            log.info("Ã°Å¸â€œÂ¬ Welcome email send result: {}", result);
             return result;
 
         } catch (Exception e) {
-            log.error("❌ Exception in sendWelcomeEmail: {}", e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Exception in sendWelcomeEmail: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -144,9 +144,9 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendPasswordResetEmail(String email, String resetToken) {
         try {
-            log.info("🔄 Starting sendPasswordResetEmail process...");
-            log.info("📧 Email: {}", email);
-            log.info("🔑 Reset Token: {}", resetToken);
+            log.info("Ã°Å¸â€â€ž Starting sendPasswordResetEmail process...");
+            log.info("Ã°Å¸â€œÂ§ Email: {}", email);
+            log.info("Ã°Å¸â€â€˜ Reset Token: {}", resetToken);
 
             // Prepare template variables
             Map<String, Object> variables = new HashMap<>();
@@ -168,11 +168,11 @@ public class EmailServiceImpl implements EmailService {
                 variables
             );
 
-            log.info("📬 Password reset email send result: {}", result);
+            log.info("Ã°Å¸â€œÂ¬ Password reset email send result: {}", result);
             return result;
 
         } catch (Exception e) {
-            log.error("❌ Exception in sendPasswordResetEmail: {}", e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Exception in sendPasswordResetEmail: {}", e.getMessage(), e);
             return false;
         }
     }
@@ -180,7 +180,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendPlainEmail(String to, String subject, String content) {
         try {
-            log.info("🔄 Sending plain email to: {}", to);
+            log.info("Ã°Å¸â€â€ž Sending plain email to: {}", to);
             
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -189,11 +189,11 @@ public class EmailServiceImpl implements EmailService {
             message.setText(content);
             
             mailSender.send(message);
-            log.info("✅ Plain email sent successfully to: {}", to);
+            log.info("Ã¢Å“â€¦ Plain email sent successfully to: {}", to);
             return true;
             
         } catch (Exception e) {
-            log.error("❌ Failed to send plain email to: {} - {}", to, e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Failed to send plain email to: {} - {}", to, e.getMessage(), e);
             return false;
         }
     }
@@ -201,7 +201,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public boolean sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
-            log.info("🔄 Sending HTML email to: {}", to);
+            log.info("Ã°Å¸â€â€ž Sending HTML email to: {}", to);
             
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -212,11 +212,11 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(htmlContent, true);
             
             mailSender.send(message);
-            log.info("✅ HTML email sent successfully to: {}", to);
+            log.info("Ã¢Å“â€¦ HTML email sent successfully to: {}", to);
             return true;
             
         } catch (Exception e) {
-            log.error("❌ Failed to send HTML email to: {} - {}", to, e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Failed to send HTML email to: {} - {}", to, e.getMessage(), e);
             return false;
         }
     }
@@ -226,7 +226,7 @@ public class EmailServiceImpl implements EmailService {
      */
     private boolean sendTemplateEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         try {
-            log.info("🔄 Sending template email to: {} using template: {}", to, templateName);
+            log.info("Ã°Å¸â€â€ž Sending template email to: {} using template: {}", to, templateName);
             
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -243,11 +243,11 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(htmlContent, true);
             
             mailSender.send(message);
-            log.info("✅ Template email sent successfully to: {}", to);
+            log.info("Ã¢Å“â€¦ Template email sent successfully to: {}", to);
             return true;
             
         } catch (Exception e) {
-            log.error("❌ Failed to send template email to: {} - {}", to, e.getMessage(), e);
+            log.error("Ã¢ÂÅ’ Failed to send template email to: {} - {}", to, e.getMessage(), e);
             return false;
         }
     }

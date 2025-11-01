@@ -7,16 +7,16 @@ import org.hibernate.annotations.UuidGenerator;
 @Entity @Table(name="template_steps")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class TemplateStep extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator
-    @Column(columnDefinition="BINARY(16)")
-    private java.util.UUID id;
+    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Column(name = "id", length = 36, columnDefinition="VARCHAR(36)")
+    private String id;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="template_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="template_id", nullable=false, columnDefinition="VARCHAR(36)")
     private BowlTemplate template;
 
     @ManyToOne(optional=false, fetch=FetchType.LAZY)
-    @JoinColumn(name="category_id", nullable=false, columnDefinition="BINARY(16)")
+    @JoinColumn(name="category_id", nullable=false, columnDefinition="VARCHAR(36)")
     private Category category;
 
     @Column(name="min_items")

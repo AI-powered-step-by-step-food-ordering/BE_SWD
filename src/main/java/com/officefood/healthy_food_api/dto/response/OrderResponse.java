@@ -5,9 +5,9 @@ import java.time.ZonedDateTime;
 
 @Data
 public class OrderResponse {
-    private java.util.UUID id;
-    private java.util.UUID userId;
-    private java.util.UUID storeId;
+    private String id;
+    private String userId;
+    private String storeId;
     private String status;
     private Double subtotalAmount;
     private Double promotionTotal;

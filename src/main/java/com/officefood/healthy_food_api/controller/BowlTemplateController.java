@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/bowl_templates")
@@ -46,7 +45,7 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
 
     // PUT /api/bowl_templates/update/{id}
     @PutMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<BowlTemplateResponse>> update(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<BowlTemplateResponse>> update(@PathVariable String id,
                               @Valid @RequestBody BowlTemplateRequest req) {
         BowlTemplate entity = mapper.toEntity(req);
         entity.setId(id);

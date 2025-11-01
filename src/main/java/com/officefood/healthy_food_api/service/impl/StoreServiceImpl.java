@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -16,11 +15,11 @@ public class StoreServiceImpl extends CrudServiceImpl<Store> implements StoreSer
     private final StoreRepository repository;
 
     @Override
-    protected org.springframework.data.jpa.repository.JpaRepository<Store, UUID> repo() {
+    protected org.springframework.data.jpa.repository.JpaRepository<Store, String> repo() {
         return repository;
     }
 
-    @Override public void open(UUID storeId) { repository.findById(storeId).orElseThrow(); /* TODO */ }
-    @Override public void close(UUID storeId) { repository.findById(storeId).orElseThrow(); /* TODO */ }
+    @Override public void open(String storeId) { repository.findById(storeId).orElseThrow(); /* TODO */ }
+    @Override public void close(String storeId) { repository.findById(storeId).orElseThrow(); /* TODO */ }
 
 }

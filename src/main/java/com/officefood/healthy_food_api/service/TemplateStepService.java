@@ -3,5 +3,5 @@ package com.officefood.healthy_food_api.service;
 import com.officefood.healthy_food_api.model.TemplateStep;
 
 public interface TemplateStepService extends CrudService<TemplateStep> {
-    void moveStep(java.util.UUID stepId, int newIndex);
+    void moveStep(String stepId, int newIndex);
 }
