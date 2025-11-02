@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.StoreRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.dto.response.StoreResponse;
 import com.officefood.healthy_food_api.mapper.StoreMapper;
 import com.officefood.healthy_food_api.model.Store;

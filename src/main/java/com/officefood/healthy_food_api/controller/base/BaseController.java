@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.controller.base;
 
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.model.BaseEntity;
 import com.officefood.healthy_food_api.service.CrudService;
 import org.springframework.http.ResponseEntity;
@@ -24,44 +25,53 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     protected abstract T toEntity(REQ request);
 
     /**
-     * GET /getall - LÃ¡ÂºÂ¥y tÃ¡ÂºÂ¥t cÃ¡ÂºÂ£ (bao gÃ¡Â»â€œm cÃ¡ÂºÂ£ active vÃƒÂ  inactive)
+     * GET /getall - Lấy tất cả (bao gồm cả active và inactive) với phân trang
+     * @param page Số trang (bắt đầu từ 0), mặc định = 0
+     * @param size Số item mỗi trang, mặc định = 5
      */
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<List<RES>>> getAll() {
-        List<RES> responses = getService()
-                .findAll()
-                .stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved all records successfully", responses));
+    public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<T> allEntities = getService().findAll();
+        PagedResponse<RES> pagedResponse = createPagedResponse(allEntities, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved all records successfully", pagedResponse));
     }
 
     /**
-     * GET /active - ChÃ¡Â»â€° lÃ¡ÂºÂ¥y cÃƒÂ¡c records active (isActive = true)
+     * GET /active - Chỉ lấy các records active (isActive = true) với phân trang
+     * @param page Số trang (bắt đầu từ 0), mặc định = 0
+     * @param size Số item mỗi trang, mặc định = 5
      */
     @GetMapping("/active")
-    public ResponseEntity<ApiResponse<List<RES>>> getAllActive() {
-        List<RES> responses = getService()
+    public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAllActive(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<T> activeEntities = getService()
                 .findAll()
                 .stream()
                 .filter(BaseEntity::getIsActive)
-                .map(this::toResponse)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active records successfully", responses));
+        PagedResponse<RES> pagedResponse = createPagedResponse(activeEntities, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active records successfully", pagedResponse));
     }
 
     /**
-     * GET /inactive - ChÃ¡Â»â€° lÃ¡ÂºÂ¥y cÃƒÂ¡c records inactive (isActive = false)
+     * GET /inactive - Chỉ lấy các records inactive (isActive = false) với phân trang
+     * @param page Số trang (bắt đầu từ 0), mặc định = 0
+     * @param size Số item mỗi trang, mặc định = 5
      */
     @GetMapping("/inactive")
-    public ResponseEntity<ApiResponse<List<RES>>> getAllInactive() {
-        List<RES> responses = getService()
+    public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAllInactive(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<T> inactiveEntities = getService()
                 .findAll()
                 .stream()
                 .filter(entity -> !entity.getIsActive())
-                .map(this::toResponse)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive records successfully", responses));
+        PagedResponse<RES> pagedResponse = createPagedResponse(inactiveEntities, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive records successfully", pagedResponse));
     }
 
     /**
@@ -116,12 +126,56 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     }
 
     /**
-     * DELETE /delete/{id} - Hard delete (xÃƒÂ³a vÃ„Â©nh viÃ¡Â»â€¦n)
+     * DELETE /delete/{id} - Hard delete (xóa vĩnh viễn)
      */
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponse<Void>> hardDelete(@PathVariable String id) {
         getService().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Record deleted permanently", null));
+    }
+
+    /**
+     * Helper method để tạo PagedResponse từ danh sách entities
+     */
+    protected PagedResponse<RES> createPagedResponse(List<T> entities, int page, int size) {
+        // Đảm bảo size tối thiểu là 1
+        if (size < 1) {
+            size = 5;
+        }
+
+        // Đảm bảo page không âm
+        if (page < 0) {
+            page = 0;
+        }
+
+        // Tính toán pagination
+        int totalElements = entities.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Nếu page vượt quá totalPages, trả về empty list
+        List<RES> pageContent;
+        if (page >= totalPages && totalPages > 0) {
+            // Page vượt quá số trang có data -> trả về empty list
+            pageContent = List.of();
+        } else {
+            // Lấy subset của entities cho page hiện tại
+            int startIndex = page * size;
+            pageContent = entities.stream()
+                    .skip(startIndex)
+                    .limit(size)
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return PagedResponse.<RES>builder()
+                .content(pageContent)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1 || totalPages == 0)
+                .build();
     }
 }
 

@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.PromotionRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.dto.response.PromotionResponse;
 import com.officefood.healthy_food_api.mapper.PromotionMapper;
 import com.officefood.healthy_food_api.model.Promotion;

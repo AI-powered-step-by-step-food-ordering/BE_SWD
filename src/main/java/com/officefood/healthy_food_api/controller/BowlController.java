@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.dto.request.BowlRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.BowlMapper;
 import com.officefood.healthy_food_api.model.Bowl;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
@@ -23,13 +24,46 @@ public class BowlController {
 
     // GET /api/bowls/getall
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<List<BowlResponse>>> getAll() {
-        List<BowlResponse> bowls = sp.bowls()
-                 .findAllWithTemplateAndSteps()
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Bowls retrieved successfully", bowls));
+    public ResponseEntity<ApiResponse<PagedResponse<BowlResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<Bowl> allBowls = sp.bowls().findAllWithTemplateAndSteps();
+        PagedResponse<BowlResponse> pagedResponse = createPagedResponse(allBowls, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Bowls retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to create PagedResponse from Bowl list
+     */
+    private PagedResponse<BowlResponse> createPagedResponse(List<Bowl> bowls, int page, int size) {
+        if (size < 1) size = 5;
+        if (page < 0) page = 0;
+
+        int totalElements = bowls.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Nếu page vượt quá totalPages, trả về empty list
+        List<BowlResponse> pageContent;
+        if (page >= totalPages && totalPages > 0) {
+            pageContent = List.of();
+        } else {
+            int startIndex = page * size;
+            pageContent = bowls.stream()
+                    .skip(startIndex)
+                    .limit(size)
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return PagedResponse.<BowlResponse>builder()
+                .content(pageContent)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1 || totalPages == 0)
+                .build();
     }
 
     // GET /api/bowls/getbyid/{id}

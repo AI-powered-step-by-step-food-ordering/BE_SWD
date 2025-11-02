@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.dto.request.OrderRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.OrderResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.OrderMapper;
 import com.officefood.healthy_food_api.model.Order;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
@@ -23,13 +24,46 @@ public class OrderController {
 
     // GET /api/orders/getall
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getAll() {
-        List<OrderResponse> orders = sp.orders()
-                 .findAllWithBowlsAndUser()
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", orders));
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<Order> allOrders = sp.orders().findAllWithBowlsAndUser();
+        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(allOrders, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to create PagedResponse from Order list
+     */
+    private PagedResponse<OrderResponse> createPagedResponse(List<Order> orders, int page, int size) {
+        if (size < 1) size = 5;
+        if (page < 0) page = 0;
+
+        int totalElements = orders.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Nếu page vượt quá totalPages, trả về empty list
+        List<OrderResponse> pageContent;
+        if (page >= totalPages && totalPages > 0) {
+            pageContent = List.of();
+        } else {
+            int startIndex = page * size;
+            pageContent = orders.stream()
+                    .skip(startIndex)
+                    .limit(size)
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return PagedResponse.<OrderResponse>builder()
+                .content(pageContent)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1 || totalPages == 0)
+                .build();
     }
 
     // GET /api/orders/getbyid/{id}
@@ -125,14 +159,14 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(200, "Order status updated successfully", response));
     }
 
-    // GET /api/orders/user/{userId} - Get order history by user ID
+    // GET /api/orders/order-history/{userId} - Get order history by user ID with pagination
     @GetMapping("/order-history/{userId}")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getByUserId(@PathVariable String userId) {
-        List<OrderResponse> orders = sp.orders()
-                 .findByUserIdWithBowlsAndUser(userId)
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Order history retrieved successfully", orders));
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getByUserId(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<Order> userOrders = sp.orders().findByUserIdWithBowlsAndUser(userId);
+        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(userOrders, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Order history retrieved successfully", pagedResponse));
     }
 }

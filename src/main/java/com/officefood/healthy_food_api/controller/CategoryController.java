@@ -4,6 +4,7 @@ import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.CategoryRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.CategoryResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.CategoryMapper;
 import com.officefood.healthy_food_api.model.Category;
 import com.officefood.healthy_food_api.provider.ServiceProvider;

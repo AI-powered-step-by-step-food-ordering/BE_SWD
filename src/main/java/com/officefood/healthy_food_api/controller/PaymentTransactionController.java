@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.dto.request.PaymentTransactionRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.dto.response.PaymentTransactionResponse;
 import com.officefood.healthy_food_api.mapper.PaymentTransactionMapper;
 import com.officefood.healthy_food_api.model.PaymentTransaction;
@@ -23,13 +24,46 @@ public class PaymentTransactionController {
 
     // GET /api/payment_transactions/getall
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getAll() {
-        List<PaymentTransactionResponse> paymentTransactions = sp.payments()
-                 .findAll()
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Payment transactions retrieved successfully", paymentTransactions));
+    public ResponseEntity<ApiResponse<PagedResponse<PaymentTransactionResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<PaymentTransaction> allTransactions = sp.payments().findAll();
+        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(allTransactions, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transactions retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to create PagedResponse from PaymentTransaction list
+     */
+    private PagedResponse<PaymentTransactionResponse> createPagedResponse(List<PaymentTransaction> transactions, int page, int size) {
+        if (size < 1) size = 5;
+        if (page < 0) page = 0;
+
+        int totalElements = transactions.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Nếu page vượt quá totalPages, trả về empty list
+        List<PaymentTransactionResponse> pageContent;
+        if (page >= totalPages && totalPages > 0) {
+            pageContent = List.of();
+        } else {
+            int startIndex = page * size;
+            pageContent = transactions.stream()
+                    .skip(startIndex)
+                    .limit(size)
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return PagedResponse.<PaymentTransactionResponse>builder()
+                .content(pageContent)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1 || totalPages == 0)
+                .build();
     }
 
     // GET /api/payment_transactions/getbyid/{id}
@@ -66,14 +100,14 @@ public class PaymentTransactionController {
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction deleted successfully", null));
     }
 
-    // GET /api/payment_transactions/user/{userId} - Get payment history by user ID
+    // GET /api/payment_transactions/payment-history/{userId} - Get payment history by user ID with pagination
     @GetMapping("/payment-history/{userId}")
-    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getByUserId(@PathVariable String userId) {
-        List<PaymentTransactionResponse> transactions = sp.payments()
-                 .findByUserId(userId)
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction history retrieved successfully", transactions));
+    public ResponseEntity<ApiResponse<PagedResponse<PaymentTransactionResponse>>> getByUserId(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<PaymentTransaction> userTransactions = sp.payments().findByUserId(userId);
+        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(userTransactions, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction history retrieved successfully", pagedResponse));
     }
 }

@@ -4,6 +4,7 @@ import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.UserRequest;
 import com.officefood.healthy_food_api.dto.request.UserUpdateRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.dto.response.UserResponse;
 import com.officefood.healthy_food_api.mapper.UserMapper;
 import com.officefood.healthy_food_api.model.User;
@@ -44,14 +45,16 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      */
     @Override
     @GetMapping("/active")
-    public ResponseEntity<ApiResponse<java.util.List<UserResponse>>> getAllActive() {
-        java.util.List<UserResponse> responses = sp.users()
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllActive(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        java.util.List<User> activeUsers = sp.users()
                 .findAll()
                 .stream()
                 .filter(User::isAccountActive) // Check status = ACTIVE and deletedAt = null
-                .map(mapper::toResponse)
                 .collect(java.util.stream.Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active users successfully", responses));
+        PagedResponse<UserResponse> pagedResponse = createPagedResponse(activeUsers, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active users successfully", pagedResponse));
     }
 
     /**
@@ -61,14 +64,16 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
      */
     @Override
     @GetMapping("/inactive")
-    public ResponseEntity<ApiResponse<java.util.List<UserResponse>>> getAllInactive() {
-        java.util.List<UserResponse> responses = sp.users()
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllInactive(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        java.util.List<User> inactiveUsers = sp.users()
                 .findAll()
                 .stream()
                 .filter(user -> !user.isAccountActive()) // Check status != ACTIVE or deletedAt != null
-                .map(mapper::toResponse)
                 .collect(java.util.stream.Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive users successfully", responses));
+        PagedResponse<UserResponse> pagedResponse = createPagedResponse(inactiveUsers, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive users successfully", pagedResponse));
     }
 
     /**

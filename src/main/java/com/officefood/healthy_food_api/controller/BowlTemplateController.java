@@ -4,6 +4,7 @@ import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.BowlTemplateRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlTemplateResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.BowlTemplateMapper;
 import com.officefood.healthy_food_api.model.BowlTemplate;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
@@ -36,16 +37,15 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
         return mapper.toEntity(request);
     }
 
-    // Override to use custom query with steps
+    // Override to use custom query with steps and pagination
     @Override
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<java.util.List<BowlTemplateResponse>>> getAll() {
-        java.util.List<BowlTemplateResponse> templates = sp.bowlTemplates()
-                 .findAllWithSteps()
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(java.util.stream.Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Bowl templates retrieved successfully", templates));
+    public ResponseEntity<ApiResponse<PagedResponse<BowlTemplateResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        java.util.List<BowlTemplate> allTemplates = sp.bowlTemplates().findAllWithSteps();
+        PagedResponse<BowlTemplateResponse> pagedResponse = createPagedResponse(allTemplates, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Bowl templates retrieved successfully", pagedResponse));
     }
 
     // Override to use custom query with steps

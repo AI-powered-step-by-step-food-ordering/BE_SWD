@@ -3,6 +3,7 @@ package com.officefood.healthy_food_api.controller;
 import com.officefood.healthy_food_api.dto.request.KitchenJobRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.KitchenJobResponse;
+import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.KitchenJobMapper;
 import com.officefood.healthy_food_api.model.KitchenJob;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
@@ -23,13 +24,46 @@ public class KitchenJobController {
 
     // GET /api/kitchen_jobs/getall
     @GetMapping("/getall")
-    public ResponseEntity<ApiResponse<List<KitchenJobResponse>>> getAll() {
-        List<KitchenJobResponse> kitchenJobs = sp.kitchenJobs()
-                 .findAll()
-                 .stream()
-                 .map(mapper::toResponse)
-                 .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(200, "Kitchen jobs retrieved successfully", kitchenJobs));
+    public ResponseEntity<ApiResponse<PagedResponse<KitchenJobResponse>>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        List<KitchenJob> allJobs = sp.kitchenJobs().findAll();
+        PagedResponse<KitchenJobResponse> pagedResponse = createPagedResponse(allJobs, page, size);
+        return ResponseEntity.ok(ApiResponse.success(200, "Kitchen jobs retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to create PagedResponse from KitchenJob list
+     */
+    private PagedResponse<KitchenJobResponse> createPagedResponse(List<KitchenJob> jobs, int page, int size) {
+        if (size < 1) size = 5;
+        if (page < 0) page = 0;
+
+        int totalElements = jobs.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Nếu page vượt quá totalPages, trả về empty list
+        List<KitchenJobResponse> pageContent;
+        if (page >= totalPages && totalPages > 0) {
+            pageContent = List.of();
+        } else {
+            int startIndex = page * size;
+            pageContent = jobs.stream()
+                    .skip(startIndex)
+                    .limit(size)
+                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return PagedResponse.<KitchenJobResponse>builder()
+                .content(pageContent)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .first(page == 0)
+                .last(page >= totalPages - 1 || totalPages == 0)
+                .build();
     }
 
     // GET /api/kitchen_jobs/getbyid/{id}
