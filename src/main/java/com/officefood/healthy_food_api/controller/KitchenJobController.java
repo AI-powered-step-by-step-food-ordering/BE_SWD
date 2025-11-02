@@ -26,9 +26,12 @@ public class KitchenJobController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<KitchenJobResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
         List<KitchenJob> allJobs = sp.kitchenJobs().findAll();
-        PagedResponse<KitchenJobResponse> pagedResponse = createPagedResponse(allJobs, page, size);
+        List<KitchenJob> sortedJobs = com.officefood.healthy_food_api.utils.SortUtils.sortEntities(allJobs, sortBy, sortDir);
+        PagedResponse<KitchenJobResponse> pagedResponse = createPagedResponse(sortedJobs, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Kitchen jobs retrieved successfully", pagedResponse));
     }
 

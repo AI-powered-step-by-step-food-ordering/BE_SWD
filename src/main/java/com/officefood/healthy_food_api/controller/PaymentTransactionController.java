@@ -26,9 +26,12 @@ public class PaymentTransactionController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<PaymentTransactionResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<PaymentTransaction> allTransactions = sp.payments().findAll();
-        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(allTransactions, page, size);
+        List<PaymentTransaction> sortedTransactions = com.officefood.healthy_food_api.utils.SortUtils.sortEntities(allTransactions, sortBy, sortDir);
+        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(sortedTransactions, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transactions retrieved successfully", pagedResponse));
     }
 
@@ -100,14 +103,17 @@ public class PaymentTransactionController {
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction deleted successfully", null));
     }
 
-    // GET /api/payment_transactions/payment-history/{userId} - Get payment history by user ID with pagination
+    // GET /api/payment_transactions/payment-history/{userId} - Get payment history by user ID with pagination and sorting
     @GetMapping("/payment-history/{userId}")
     public ResponseEntity<ApiResponse<PagedResponse<PaymentTransactionResponse>>> getByUserId(
             @PathVariable String userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<PaymentTransaction> userTransactions = sp.payments().findByUserId(userId);
-        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(userTransactions, page, size);
+        List<PaymentTransaction> sortedTransactions = com.officefood.healthy_food_api.utils.SortUtils.sortEntities(userTransactions, sortBy, sortDir);
+        PagedResponse<PaymentTransactionResponse> pagedResponse = createPagedResponse(sortedTransactions, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Payment transaction history retrieved successfully", pagedResponse));
     }
 }

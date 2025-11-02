@@ -37,14 +37,17 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
         return mapper.toEntity(request);
     }
 
-    // Override to use custom query with steps and pagination
+    // Override to use custom query with steps, pagination and sorting
     @Override
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<BowlTemplateResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         java.util.List<BowlTemplate> allTemplates = sp.bowlTemplates().findAllWithSteps();
-        PagedResponse<BowlTemplateResponse> pagedResponse = createPagedResponse(allTemplates, page, size);
+        java.util.List<BowlTemplate> sortedTemplates = sortEntities(allTemplates, sortBy, sortDir);
+        PagedResponse<BowlTemplateResponse> pagedResponse = createPagedResponse(sortedTemplates, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Bowl templates retrieved successfully", pagedResponse));
     }
 

@@ -26,9 +26,12 @@ public class PromotionRedemptionController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<PromotionRedemptionResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<PromotionRedemption> allRedemptions = sp.promotionRedemptions().findAll();
-        PagedResponse<PromotionRedemptionResponse> pagedResponse = createPagedResponse(allRedemptions, page, size);
+        List<PromotionRedemption> sortedRedemptions = com.officefood.healthy_food_api.utils.SortUtils.sortEntities(allRedemptions, sortBy, sortDir);
+        PagedResponse<PromotionRedemptionResponse> pagedResponse = createPagedResponse(sortedRedemptions, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Promotion redemptions retrieved successfully", pagedResponse));
     }
 

@@ -7,6 +7,11 @@ import com.officefood.healthy_food_api.service.CrudService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Field;
+import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
+import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,52 +30,67 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     protected abstract T toEntity(REQ request);
 
     /**
-     * GET /getall - Lấy tất cả (bao gồm cả active và inactive) với phân trang
+     * GET /getall - Lấy tất cả (bao gồm cả active và inactive) với phân trang và sorting
      * @param page Số trang (bắt đầu từ 0), mặc định = 0
      * @param size Số item mỗi trang, mặc định = 5
+     * @param sortBy Field để sort (mặc định = "createdAt")
+     * @param sortDir Direction để sort: "asc" hoặc "desc" (mặc định = "desc")
      */
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<T> allEntities = getService().findAll();
-        PagedResponse<RES> pagedResponse = createPagedResponse(allEntities, page, size);
+        List<T> sortedEntities = sortEntities(allEntities, sortBy, sortDir);
+        PagedResponse<RES> pagedResponse = createPagedResponse(sortedEntities, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Retrieved all records successfully", pagedResponse));
     }
 
     /**
-     * GET /active - Chỉ lấy các records active (isActive = true) với phân trang
+     * GET /active - Chỉ lấy các records active (isActive = true) với phân trang và sorting
      * @param page Số trang (bắt đầu từ 0), mặc định = 0
      * @param size Số item mỗi trang, mặc định = 5
+     * @param sortBy Field để sort (mặc định = "createdAt")
+     * @param sortDir Direction để sort: "asc" hoặc "desc" (mặc định = "desc")
      */
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAllActive(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<T> activeEntities = getService()
                 .findAll()
                 .stream()
                 .filter(BaseEntity::getIsActive)
                 .collect(Collectors.toList());
-        PagedResponse<RES> pagedResponse = createPagedResponse(activeEntities, page, size);
+        List<T> sortedEntities = sortEntities(activeEntities, sortBy, sortDir);
+        PagedResponse<RES> pagedResponse = createPagedResponse(sortedEntities, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active records successfully", pagedResponse));
     }
 
     /**
-     * GET /inactive - Chỉ lấy các records inactive (isActive = false) với phân trang
+     * GET /inactive - Chỉ lấy các records inactive (isActive = false) với phân trang và sorting
      * @param page Số trang (bắt đầu từ 0), mặc định = 0
      * @param size Số item mỗi trang, mặc định = 5
+     * @param sortBy Field để sort (mặc định = "createdAt")
+     * @param sortDir Direction để sort: "asc" hoặc "desc" (mặc định = "desc")
      */
     @GetMapping("/inactive")
     public ResponseEntity<ApiResponse<PagedResponse<RES>>> getAllInactive(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<T> inactiveEntities = getService()
                 .findAll()
                 .stream()
                 .filter(entity -> !entity.getIsActive())
                 .collect(Collectors.toList());
-        PagedResponse<RES> pagedResponse = createPagedResponse(inactiveEntities, page, size);
+        List<T> sortedEntities = sortEntities(inactiveEntities, sortBy, sortDir);
+        PagedResponse<RES> pagedResponse = createPagedResponse(sortedEntities, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive records successfully", pagedResponse));
     }
 
@@ -132,6 +152,90 @@ public abstract class BaseController<T extends BaseEntity, REQ, RES> {
     public ResponseEntity<ApiResponse<Void>> hardDelete(@PathVariable String id) {
         getService().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Record deleted permanently", null));
+    }
+
+    /**
+     * Helper method để sort entities theo field và direction
+     */
+    protected List<T> sortEntities(List<T> entities, String sortBy, String sortDir) {
+        if (entities == null || entities.isEmpty()) {
+            return entities;
+        }
+
+        boolean ascending = "asc".equalsIgnoreCase(sortDir);
+
+        try {
+            Comparator<T> comparator = (entity1, entity2) -> {
+                try {
+                    Object value1 = getFieldValue(entity1, sortBy);
+                    Object value2 = getFieldValue(entity2, sortBy);
+
+                    // Handle null values - nulls last for both directions
+                    if (value1 == null && value2 == null) return 0;
+                    if (value1 == null) return 1;
+                    if (value2 == null) return -1;
+
+                    // Compare based on type
+                    int result = compareValues(value1, value2);
+                    return ascending ? result : -result;
+                } catch (Exception e) {
+                    return 0; // If comparison fails, consider them equal
+                }
+            };
+
+            return entities.stream()
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            // If sorting fails, return original list
+            return entities;
+        }
+    }
+
+    /**
+     * Get field value from entity using reflection
+     */
+    private Object getFieldValue(T entity, String fieldName) throws Exception {
+        try {
+            // Try to get field from entity class
+            Field field = findField(entity.getClass(), fieldName);
+            if (field != null) {
+                field.setAccessible(true);
+                return field.get(entity);
+            }
+        } catch (Exception e) {
+            // Field not found or not accessible
+        }
+        return null;
+    }
+
+    /**
+     * Find field in class hierarchy
+     */
+    private Field findField(Class<?> clazz, String fieldName) {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Compare two values based on their type
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private int compareValues(Object value1, Object value2) {
+        if (value1 instanceof Comparable && value2 instanceof Comparable) {
+            if (value1.getClass().equals(value2.getClass())) {
+                return ((Comparable) value1).compareTo(value2);
+            }
+        }
+
+        // Fallback to string comparison
+        return value1.toString().compareTo(value2.toString());
     }
 
     /**

@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.lang.reflect.Field;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,10 +28,76 @@ public class BowlController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<BowlResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<Bowl> allBowls = sp.bowls().findAllWithTemplateAndSteps();
-        PagedResponse<BowlResponse> pagedResponse = createPagedResponse(allBowls, page, size);
+        List<Bowl> sortedBowls = sortBowls(allBowls, sortBy, sortDir);
+        PagedResponse<BowlResponse> pagedResponse = createPagedResponse(sortedBowls, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Bowls retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to sort bowls
+     */
+    private List<Bowl> sortBowls(List<Bowl> bowls, String sortBy, String sortDir) {
+        if (bowls == null || bowls.isEmpty()) {
+            return bowls;
+        }
+
+        boolean ascending = "asc".equalsIgnoreCase(sortDir);
+
+        try {
+            Comparator<Bowl> comparator = (bowl1, bowl2) -> {
+                try {
+                    Object value1 = getFieldValue(bowl1, sortBy);
+                    Object value2 = getFieldValue(bowl2, sortBy);
+
+                    if (value1 == null && value2 == null) return 0;
+                    if (value1 == null) return 1;
+                    if (value2 == null) return -1;
+
+                    int result = compareValues(value1, value2);
+                    return ascending ? result : -result;
+                } catch (Exception e) {
+                    return 0;
+                }
+            };
+
+            return bowls.stream().sorted(comparator).collect(Collectors.toList());
+        } catch (Exception e) {
+            return bowls;
+        }
+    }
+
+    private Object getFieldValue(Bowl entity, String fieldName) throws Exception {
+        Field field = findField(entity.getClass(), fieldName);
+        if (field != null) {
+            field.setAccessible(true);
+            return field.get(entity);
+        }
+        return null;
+    }
+
+    private Field findField(Class<?> clazz, String fieldName) {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private int compareValues(Object value1, Object value2) {
+        if (value1 instanceof Comparable && value2 instanceof Comparable) {
+            if (value1.getClass().equals(value2.getClass())) {
+                return ((Comparable) value1).compareTo(value2);
+            }
+        }
+        return value1.toString().compareTo(value2.toString());
     }
 
     /**

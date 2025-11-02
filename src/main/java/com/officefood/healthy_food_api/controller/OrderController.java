@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
+import java.lang.reflect.Field;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,10 +28,69 @@ public class OrderController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<Order> allOrders = sp.orders().findAllWithBowlsAndUser();
-        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(allOrders, page, size);
+        List<Order> sortedOrders = sortOrders(allOrders, sortBy, sortDir);
+        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(sortedOrders, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", pagedResponse));
+    }
+
+    /**
+     * Helper method to sort orders
+     */
+    private List<Order> sortOrders(List<Order> orders, String sortBy, String sortDir) {
+        if (orders == null || orders.isEmpty()) return orders;
+        boolean ascending = "asc".equalsIgnoreCase(sortDir);
+        try {
+            Comparator<Order> comparator = (o1, o2) -> {
+                try {
+                    Object v1 = getFieldValue(o1, sortBy);
+                    Object v2 = getFieldValue(o2, sortBy);
+                    if (v1 == null && v2 == null) return 0;
+                    if (v1 == null) return 1;
+                    if (v2 == null) return -1;
+                    int result = compareValues(v1, v2);
+                    return ascending ? result : -result;
+                } catch (Exception e) {
+                    return 0;
+                }
+            };
+            return orders.stream().sorted(comparator).collect(Collectors.toList());
+        } catch (Exception e) {
+            return orders;
+        }
+    }
+
+    private Object getFieldValue(Order entity, String fieldName) throws Exception {
+        Field field = findField(entity.getClass(), fieldName);
+        if (field != null) {
+            field.setAccessible(true);
+            return field.get(entity);
+        }
+        return null;
+    }
+
+    private Field findField(Class<?> clazz, String fieldName) {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private int compareValues(Object v1, Object v2) {
+        if (v1 instanceof Comparable && v2 instanceof Comparable) {
+            if (v1.getClass().equals(v2.getClass())) {
+                return ((Comparable) v1).compareTo(v2);
+            }
+        }
+        return v1.toString().compareTo(v2.toString());
     }
 
     /**
@@ -159,14 +220,17 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(200, "Order status updated successfully", response));
     }
 
-    // GET /api/orders/order-history/{userId} - Get order history by user ID with pagination
+    // GET /api/orders/order-history/{userId} - Get order history by user ID with pagination and sorting
     @GetMapping("/order-history/{userId}")
     public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> getByUserId(
             @PathVariable String userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<Order> userOrders = sp.orders().findByUserIdWithBowlsAndUser(userId);
-        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(userOrders, page, size);
+        List<Order> sortedOrders = sortOrders(userOrders, sortBy, sortDir);
+        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(sortedOrders, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Order history retrieved successfully", pagedResponse));
     }
 }

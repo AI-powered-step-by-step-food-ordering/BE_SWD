@@ -47,13 +47,16 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllActive(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         java.util.List<User> activeUsers = sp.users()
                 .findAll()
                 .stream()
                 .filter(User::isAccountActive) // Check status = ACTIVE and deletedAt = null
                 .collect(java.util.stream.Collectors.toList());
-        PagedResponse<UserResponse> pagedResponse = createPagedResponse(activeUsers, page, size);
+        java.util.List<User> sortedUsers = sortEntities(activeUsers, sortBy, sortDir);
+        PagedResponse<UserResponse> pagedResponse = createPagedResponse(sortedUsers, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Retrieved active users successfully", pagedResponse));
     }
 
@@ -66,13 +69,16 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
     @GetMapping("/inactive")
     public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllInactive(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         java.util.List<User> inactiveUsers = sp.users()
                 .findAll()
                 .stream()
                 .filter(user -> !user.isAccountActive()) // Check status != ACTIVE or deletedAt != null
                 .collect(java.util.stream.Collectors.toList());
-        PagedResponse<UserResponse> pagedResponse = createPagedResponse(inactiveUsers, page, size);
+        java.util.List<User> sortedUsers = sortEntities(inactiveUsers, sortBy, sortDir);
+        PagedResponse<UserResponse> pagedResponse = createPagedResponse(sortedUsers, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Retrieved inactive users successfully", pagedResponse));
     }
 
@@ -189,4 +195,7 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
                 })
                 .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "User not found")));
     }
+
+    // DELETE /api/users/delete/{id} - inherited from BaseController
 }
+

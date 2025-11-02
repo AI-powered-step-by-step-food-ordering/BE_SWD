@@ -26,9 +26,12 @@ public class InventoryController {
     @GetMapping("/getall")
     public ResponseEntity<ApiResponse<PagedResponse<InventoryResponse>>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
         List<Inventory> allInventories = sp.inventories().findAll();
-        PagedResponse<InventoryResponse> pagedResponse = createPagedResponse(allInventories, page, size);
+        List<Inventory> sortedInventories = com.officefood.healthy_food_api.utils.SortUtils.sortEntities(allInventories, sortBy, sortDir);
+        PagedResponse<InventoryResponse> pagedResponse = createPagedResponse(sortedInventories, page, size);
         return ResponseEntity.ok(ApiResponse.success(200, "Inventories retrieved successfully", pagedResponse));
     }
 
