@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +20,18 @@ public class TemplateStepServiceImpl extends CrudServiceImpl<TemplateStep> imple
     @Override
     protected org.springframework.data.jpa.repository.JpaRepository<TemplateStep, String> repo() {
         return repository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TemplateStep> findAll() {
+        return repository.findAllWithJoins();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TemplateStep> findById(String id) {
+        return repository.findByIdWithJoins(id);
     }
 
     @Override public void moveStep(String stepId, int newIndex) { repository.findById(stepId).orElseThrow(); /* TODO */ }
