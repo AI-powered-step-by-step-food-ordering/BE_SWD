@@ -31,8 +31,33 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     public Order recalcTotals(String orderId) {
         log.info("=== Recalculating totals for Order: {} ===", orderId);
 
-        Order order = repository.findById(orderId)
-            .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+        try {
+            // Step 1: Fetch order with bowls
+            Order order = repository.findByIdWithBowls(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        if (order.getBowls() == null || order.getBowls().isEmpty()) {
+            log.warn("Order {} has no bowls", orderId);
+            order.setSubtotalAmount(0.0);
+            order.setTotalAmount(0.0);
+            repository.save(order);
+
+            // Refetch with user relationship for clean response
+            return repository.findByIdWithBowlsAndUser(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found after save: " + orderId));
+        }
+
+        // Step 2: Fetch bowls with items and ingredients separately to avoid Cartesian product
+        java.util.List<Bowl> bowlsWithItems = repository.findBowlsWithItemsByOrderId(orderId);
+
+        log.info("Fetched {} bowl(s) with items from database", bowlsWithItems.size());
+
+        // Create a map for quick lookup
+        java.util.Map<String, Bowl> bowlItemsMap = new java.util.HashMap<>();
+        for (Bowl b : bowlsWithItems) {
+            bowlItemsMap.put(b.getId(), b);
+            log.debug("Bowl {} has {} item(s)", b.getId(), b.getItems() != null ? b.getItems().size() : 0);
+        }
 
         double subtotal = 0.0;
 
@@ -40,14 +65,55 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
 
         // Calculate each bowl's price
         for (Bowl bowl : order.getBowls()) {
-            log.info("Processing Bowl: {} with {} item(s)", bowl.getId(), bowl.getItems().size());
+            if (bowl == null) {
+                log.warn("Skipping null bowl");
+                continue;
+            }
+
+            // Get the fully loaded bowl with items from our map
+            Bowl bowlWithItems = bowlItemsMap.get(bowl.getId());
+            if (bowlWithItems == null || bowlWithItems.getItems() == null || bowlWithItems.getItems().isEmpty()) {
+                log.warn("Bowl {} has no items, setting linePrice to 0.0", bowl.getId());
+                bowl.setLinePrice(0.0);
+                // Continue to next bowl instead of adding to subtotal
+                log.info("Bowl {} total: 0.0", bowl.getId());
+                continue;
+            }
+
+            log.info("Processing Bowl: {} with {} item(s)", bowl.getId(), bowlWithItems.getItems().size());
 
             double bowlPrice = 0.0;
 
             // Calculate each bowl item's price
-            for (BowlItem item : bowl.getItems()) {
+            for (BowlItem item : bowlWithItems.getItems()) {
+                if (item == null) {
+                    log.warn("Skipping null bowl item");
+                    continue;
+                }
+
                 try {
-                    // Calculate: (quantity / standardQuantity) ÃƒÆ’Ã¢â‚¬â€ unitPrice (snapshot)
+                    // Validate required fields
+                    if (item.getQuantity() == null) {
+                        log.warn("BowlItem {} has null quantity, skipping", item.getId());
+                        continue;
+                    }
+
+                    if (item.getUnitPrice() == null) {
+                        log.warn("BowlItem {} has null unitPrice, skipping", item.getId());
+                        continue;
+                    }
+
+                    if (item.getIngredient() == null) {
+                        log.error("BowlItem {} has null ingredient, skipping", item.getId());
+                        continue;
+                    }
+
+                    if (item.getIngredient().getStandardQuantity() == null) {
+                        log.error("BowlItem {} ingredient has null standardQuantity, skipping", item.getId());
+                        continue;
+                    }
+
+                    // Calculate: (quantity / standardQuantity) × unitPrice (snapshot)
                     double itemPrice = IngredientCalculator.calculateBowlItemPrice(
                         item.getQuantity(),
                         item.getIngredient().getStandardQuantity(),
@@ -64,7 +130,8 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
                         itemPrice);
 
                 } catch (Exception e) {
-                    log.error("Error calculating BowlItem price: {}", e.getMessage(), e);
+                    log.error("Error calculating BowlItem price for item {}: {}",
+                        item.getId(), e.getMessage(), e);
                     // Skip this item if error
                 }
             }
@@ -96,7 +163,26 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
             subtotal, promotionDiscount, total);
         log.info("=== Recalculation complete ===");
 
-        return repository.save(order);
+            // Save the order
+            repository.save(order);
+
+            // Refetch with proper relationships for clean response
+            return repository.findByIdWithBowlsAndUser(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found after save: " + orderId));
+
+        } catch (Exception e) {
+            log.error("====================================================");
+            log.error("❌ ERROR in recalcTotals for Order: {}", orderId);
+            log.error("====================================================");
+            log.error("Exception Type: {}", e.getClass().getName());
+            log.error("Exception Message: {}", e.getMessage());
+            if (e.getCause() != null) {
+                log.error("Caused by: {} - {}", e.getCause().getClass().getName(), e.getCause().getMessage());
+            }
+            log.error("Full Stack Trace:", e);
+            log.error("====================================================");
+            throw e; // Re-throw to let GlobalExceptionHandler handle it
+        }
     }
 
     @Override

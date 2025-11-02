@@ -76,4 +76,19 @@ public interface OrderRepository extends UuidJpaRepository<Order> {
            "AND (b.isActive = true OR b IS NULL) " +
            "ORDER BY o.createdAt DESC")
     List<Order> findByUserIdWithBowlsAndUser(@Param("userId") String userId);
+
+    // Get order by ID with bowls for recalculation (step 1)
+    @Query("SELECT o FROM Order o " +
+           "LEFT JOIN FETCH o.bowls b " +
+           "WHERE o.id = :id " +
+           "AND o.isActive = true")
+    Optional<Order> findByIdWithBowls(@Param("id") String id);
+
+    // Get bowls with items and ingredients for recalculation (step 2)
+    @Query("SELECT DISTINCT b FROM Bowl b " +
+           "LEFT JOIN FETCH b.items bi " +
+           "LEFT JOIN FETCH bi.ingredient i " +
+           "WHERE b.order.id = :orderId " +
+           "AND b.isActive = true")
+    List<com.officefood.healthy_food_api.model.Bowl> findBowlsWithItemsByOrderId(@Param("orderId") String orderId);
 }
