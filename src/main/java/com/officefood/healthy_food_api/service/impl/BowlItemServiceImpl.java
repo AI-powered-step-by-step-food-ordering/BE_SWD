@@ -8,6 +8,7 @@ import com.officefood.healthy_food_api.repository.IngredientRepository;
 import com.officefood.healthy_food_api.service.BowlItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,14 +87,33 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
             BowlItem savedItem = super.create(entity);
             log.info("=== SUCCESS - BowlItem created with ID: {} ===", savedItem.getId());
 
-            // Load lại BowlItem với đầy đủ thông tin Ingredient
-            log.info("Loading BowlItem with full Ingredient details...");
-            BowlItem fullItem = repository.findByIdWithIngredient(savedItem.getId())
-                .orElse(savedItem);
-            log.info("Loaded BowlItem with Ingredient: {}",
-                fullItem.getIngredient() != null ? fullItem.getIngredient().getName() : "NULL");
+            // Load lại ingredient đầy đủ từ DB và set vào savedItem
+            String ingredientId = savedItem.getIngredient().getId();
+            log.info("Loading full Ingredient with ID: {}", ingredientId);
 
-            return fullItem;
+            Ingredient fullIngredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new NotFoundException("Ingredient not found: " + ingredientId));
+
+            // Initialize ingredient và category để force load trước khi transaction kết thúc
+            Hibernate.initialize(fullIngredient);
+            log.info("Ingredient loaded: ID={}, Name={}, Unit={}, UnitPrice={}",
+                fullIngredient.getId(),
+                fullIngredient.getName(),
+                fullIngredient.getUnit(),
+                fullIngredient.getUnitPrice());
+
+            if (fullIngredient.getCategory() != null) {
+                Hibernate.initialize(fullIngredient.getCategory());
+                log.info("Category loaded: ID={}, Name={}",
+                    fullIngredient.getCategory().getId(),
+                    fullIngredient.getCategory().getName());
+            }
+
+            // Set ingredient đã loaded vào savedItem
+            savedItem.setIngredient(fullIngredient);
+            log.info("=== BowlItem with full Ingredient ready to return ===");
+
+            return savedItem;
 
         } catch (Exception e) {
             log.error("=== ERROR Creating BowlItem ===");

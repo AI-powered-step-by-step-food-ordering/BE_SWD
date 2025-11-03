@@ -37,6 +37,14 @@ public class IngredientController extends BaseController<Ingredient, IngredientR
         return mapper.toEntity(request);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<IngredientResponse>> getById(@PathVariable String id) {
+        Ingredient ingredient = sp.ingredients().findById(id)
+                .orElseThrow(() -> new com.officefood.healthy_food_api.exception.NotFoundException("Ingredient not found with id: " + id));
+        IngredientResponse response = mapper.toResponse(ingredient);
+        return ResponseEntity.ok(ApiResponse.success(200, "Ingredient retrieved successfully", response));
+    }
+
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<IngredientResponse>> create(@Valid @RequestBody IngredientRequest req) {
         IngredientResponse response = mapper.toResponse(sp.ingredients().create(mapper.toEntity(req)));
