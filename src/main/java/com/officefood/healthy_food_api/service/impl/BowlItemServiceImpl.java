@@ -86,7 +86,14 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
             BowlItem savedItem = super.create(entity);
             log.info("=== SUCCESS - BowlItem created with ID: {} ===", savedItem.getId());
 
-            return savedItem;
+            // Load lại BowlItem với đầy đủ thông tin Ingredient
+            log.info("Loading BowlItem with full Ingredient details...");
+            BowlItem fullItem = repository.findByIdWithIngredient(savedItem.getId())
+                .orElse(savedItem);
+            log.info("Loaded BowlItem with Ingredient: {}",
+                fullItem.getIngredient() != null ? fullItem.getIngredient().getName() : "NULL");
+
+            return fullItem;
 
         } catch (Exception e) {
             log.error("=== ERROR Creating BowlItem ===");

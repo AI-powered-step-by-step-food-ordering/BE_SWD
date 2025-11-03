@@ -96,6 +96,23 @@
       "item": [
         {
           "name": "Get User Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.content && jsonData.content.length > 0) {",
+                  "        pm.collectionVariables.set('notification_id', jsonData.content[0].id);",
+                  "        console.log('✅ notification_id saved:', jsonData.content[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -126,6 +143,23 @@
         },
         {
           "name": "Get Unread Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.length > 0) {",
+                  "        pm.collectionVariables.set('notification_id', jsonData[0].id);",
+                  "        console.log('✅ notification_id saved:', jsonData[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -420,7 +454,114 @@
       ]
     },
     {
-      "name": "5. Auth (Get Tokens First)",
+      "name": "5. Helper - Get IDs",
+      "item": [
+        {
+          "name": "Get User Orders (to get order_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.content && jsonData.content.length > 0) {",
+                  "        pm.collectionVariables.set('order_id', jsonData.content[0].id);",
+                  "        console.log('✅ order_id saved:', jsonData.content[0].id);",
+                  "    } else {",
+                  "        console.log('⚠️ No orders found. Please create an order first.');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/orders?userId={{user_id}}&page=0&size=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{user_id}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Lấy danh sách order của user để get order_id. Order_id sẽ tự động lưu vào biến."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Test Order (if no orders)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.collectionVariables.set('order_id', jsonData.data.id);",
+                  "        console.log('✅ Test order created and order_id saved:', jsonData.data.id);",
+                  "    } else if (jsonData.id) {",
+                  "        pm.collectionVariables.set('order_id', jsonData.id);",
+                  "        console.log('✅ Test order created and order_id saved:', jsonData.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"bowlId\": \"some-bowl-id\",\n      \"quantity\": 1\n    }\n  ],\n  \"deliveryAddress\": \"Test Address\",\n  \"notes\": \"Test order for push notification\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders"]
+            },
+            "description": "Tạo order test nếu user chưa có order nào. Cần sửa bowlId thành ID thật trong database."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Auth (Get Tokens First)",
       "item": [
         {
           "name": "Login as User",

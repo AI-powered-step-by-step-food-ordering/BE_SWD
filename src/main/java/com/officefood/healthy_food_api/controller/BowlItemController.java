@@ -43,7 +43,7 @@ public class BowlItemController {
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl item not found")));
     }
 
-    // POST /api/bowl_items/create - vÃ¡Â»â€ºi validation rÃƒÂ ng buÃ¡Â»â„¢c ingredients
+    // POST /api/bowl_items/create - vÃ¡Â»â€ºi validation rÃƒÂ ng buÃ¡Â»â„¢c ingredients
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<BowlItemResponse>> create(@Valid @RequestBody BowlItemRequest req) {
         // Validate ingredient restrictions trÃ†Â°Ã¡Â»â€ºc khi tÃ¡ÂºÂ¡o
@@ -56,6 +56,53 @@ public class BowlItemController {
 
         BowlItemResponse response = mapper.toResponse(sp.bowlItems().create(mapper.toEntity(req)));
         return ResponseEntity.ok(ApiResponse.success(201, "Bowl item created successfully", response));
+    }
+
+    // POST /api/bowl_items/create-bulk - Tạo nhiều bowl items cùng lúc
+    @PostMapping("/create-bulk")
+    public ResponseEntity<ApiResponse<List<BowlItemResponse>>> createBulk(@Valid @RequestBody List<BowlItemRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.error(400, "EMPTY_LIST", "Request list cannot be empty"));
+        }
+
+        List<BowlItemResponse> responses = new java.util.ArrayList<>();
+        List<String> errors = new java.util.ArrayList<>();
+
+        for (int i = 0; i < requests.size(); i++) {
+            BowlItemRequest req = requests.get(i);
+            try {
+                // Validate ingredient restrictions cho từng item
+                IngredientValidationResult validationResult = sp.ingredientRestrictions()
+                        .validateIngredientAddition(req.getBowlId(), req.getIngredientId());
+
+                if (!validationResult.isValid()) {
+                    errors.add("Item " + (i + 1) + ": " + validationResult.getMessage());
+                    continue;
+                }
+
+                // Tạo bowl item
+                BowlItem createdItem = sp.bowlItems().create(mapper.toEntity(req));
+                responses.add(mapper.toResponse(createdItem));
+
+            } catch (Exception e) {
+                errors.add("Item " + (i + 1) + ": " + e.getMessage());
+            }
+        }
+
+        // Nếu có lỗi, trả về thông tin chi tiết
+        if (!errors.isEmpty()) {
+            String errorMessage = "Some items failed to create: " + String.join("; ", errors);
+            if (responses.isEmpty()) {
+                // Tất cả đều thất bại
+                return ResponseEntity.ok(ApiResponse.error(400, "ALL_ITEMS_FAILED", errorMessage));
+            } else {
+                // Một số thành công, một số thất bại
+                return ResponseEntity.ok(ApiResponse.success(207, errorMessage, responses));
+            }
+        }
+
+        // Tất cả thành công
+        return ResponseEntity.ok(ApiResponse.success(201, "All bowl items created successfully", responses));
     }
 
     // PUT /api/bowl_items/update/{id}
