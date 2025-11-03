@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -20,5 +22,10 @@ public class IngredientServiceImpl extends CrudServiceImpl<Ingredient> implement
     }
 
     @Override public void markOutOfStock(String ingredientId) { repository.findById(ingredientId).orElseThrow(); /* TODO */ }
+
+    @Override
+    public List<Ingredient> findByCategoryId(String categoryId) {
+        return repository.findByCategoryId(categoryId);
+    }
 
 }
