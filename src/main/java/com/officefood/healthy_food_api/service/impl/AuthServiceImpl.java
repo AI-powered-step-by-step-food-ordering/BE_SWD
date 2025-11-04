@@ -21,6 +21,7 @@ import com.officefood.healthy_food_api.service.TokenBlacklistService;
 import com.officefood.healthy_food_api.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,9 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final OtpService otpService;
     private final AuthMapper authMapper;
+
+    @Value("${google.client-id}")
+    private String googleClientId;
 
     @Override
     @Transactional
@@ -130,6 +134,83 @@ public class AuthServiceImpl implements AuthService {
             user.getAddress(),
             user.getPhone()
         );
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse loginWithGoogle(com.officefood.healthy_food_api.dto.GoogleLoginRequest req) {
+        try {
+            var transport = new com.google.api.client.http.javanet.NetHttpTransport();
+            var jsonFactory = com.google.api.client.json.jackson2.JacksonFactory.getDefaultInstance();
+
+            var verifier = new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(transport, jsonFactory)
+                    .setAudience(java.util.Collections.singletonList(googleClientId))
+                    .build();
+
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken = verifier.verify(req.idToken());
+            if (idToken == null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String pictureUrl = (String) payload.get("picture");
+            Boolean emailVerified = (Boolean) payload.get("email_verified");
+
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user == null) {
+                user = new User();
+                user.setEmail(email);
+                user.setFullName(name != null ? name : email);
+                user.setImageUrl(pictureUrl);
+                user.setEmailVerified(Boolean.TRUE.equals(emailVerified));
+                user.setStatus(AccountStatus.ACTIVE);
+                // Set a random password hash to satisfy non-null constraint
+                String randomSecret = java.util.UUID.randomUUID().toString() + ":" + java.util.UUID.randomUUID();
+                user.setPasswordHash(passwordEncoder.encode(randomSecret));
+                userRepository.save(user);
+            } else {
+                // Ensure account is active
+                if (!user.isAccountActive()) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+                // Update avatar if empty and Google has one
+                if ((user.getImageUrl() == null || user.getImageUrl().isBlank()) && pictureUrl != null) {
+                    user.setImageUrl(pictureUrl);
+                    userRepository.save(user);
+                }
+                // Trust Google email verification
+                if (Boolean.TRUE.equals(emailVerified) && !Boolean.TRUE.equals(user.getEmailVerified())) {
+                    user.setEmailVerified(true);
+                    userRepository.save(user);
+                }
+            }
+
+            String accessToken = jwtService.generateToken(user.getEmail());
+            String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+            return new LoginResponse(
+                user.getId(),
+                accessToken,
+                refreshToken,
+                "Bearer",
+                user.getEmail(),
+                user.getFullName(),
+                jwtService.getAccessTokenExpiration(),
+                user.getGoalCode(),
+                user.getRole() != null ? user.getRole().name() : null,
+                user.getImageUrl(),
+                user.getDateOfBirth(),
+                user.getAddress(),
+                user.getPhone()
+            );
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Google login failed: {}", e.getMessage(), e);
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
     }
 
     @Override

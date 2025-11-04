@@ -40,6 +40,14 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(200, "Login successful", result));
     }
 
+    @PostMapping(value = "/google", consumes = "application/json", produces = "application/json")
+    @Operation(requestBody = @RequestBody(required = true,
+            content = @Content(schema = @Schema(implementation = GoogleLoginRequest.class))))
+    public ResponseEntity<ApiResponse<LoginResponse>> loginWithGoogle(@Valid @org.springframework.web.bind.annotation.RequestBody GoogleLoginRequest req) {
+        var result = sp.auth().loginWithGoogle(req);
+        return ResponseEntity.ok(ApiResponse.success(200, "Login with Google successful", result));
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader(value = "Authorization", required = false) String bearer) {
         sp.auth().logout(bearer);
