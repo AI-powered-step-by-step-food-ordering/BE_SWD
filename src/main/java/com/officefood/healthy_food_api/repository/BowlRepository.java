@@ -19,13 +19,23 @@ public interface BowlRepository extends UuidJpaRepository<Bowl> {
            "ORDER BY b.createdAt DESC")
     List<Bowl> findAllWithTemplateAndSteps();
 
+    // Get all bowls with items (without template steps to avoid Cartesian product)
+    @Query("SELECT DISTINCT b FROM Bowl b " +
+           "LEFT JOIN FETCH b.template t " +
+           "LEFT JOIN FETCH b.items bi " +
+           "LEFT JOIN FETCH bi.ingredient i " +
+           "WHERE b.isActive = true " +
+           "AND (t.isActive = true OR t IS NULL) " +
+           "AND (bi.isActive = true OR bi IS NULL) " +
+           "ORDER BY b.createdAt DESC")
+    List<Bowl> findAllWithItems();
+
     // Helper query to fetch steps with categories for templates
     @Query("SELECT DISTINCT t FROM BowlTemplate t " +
            "LEFT JOIN FETCH t.steps ts " +
            "LEFT JOIN FETCH ts.category c " +
            "WHERE t.id IN :templateIds " +
-           "AND t.isActive = true " +
-           "AND (ts.isActive = true OR ts IS NULL)")
+           "AND t.isActive = true")
     List<BowlTemplate> fetchTemplateSteps(@Param("templateIds") List<String> templateIds);
 
     // Get bowl by ID with template and template steps joined
@@ -35,8 +45,7 @@ public interface BowlRepository extends UuidJpaRepository<Bowl> {
            "LEFT JOIN FETCH ts.category c " +
            "WHERE b.id = :id " +
            "AND b.isActive = true " +
-           "AND (t.isActive = true OR t IS NULL) " +
-           "AND (ts.isActive = true OR ts IS NULL)")
+           "AND (t.isActive = true OR t IS NULL)")
     Optional<Bowl> findByIdWithTemplateAndSteps(@Param("id") String id);
 
     // Get bowl by ID with bowl items (without template steps to avoid Cartesian product)
@@ -50,4 +59,13 @@ public interface BowlRepository extends UuidJpaRepository<Bowl> {
            "AND (t.isActive = true OR t IS NULL) " +
            "AND (bi.isActive = true OR bi IS NULL)")
     Optional<Bowl> findByIdWithTemplateAndItems(@Param("id") String id);
+
+    // Get multiple bowls by IDs with items
+    @Query("SELECT DISTINCT b FROM Bowl b " +
+           "LEFT JOIN FETCH b.items bi " +
+           "LEFT JOIN FETCH bi.ingredient i " +
+           "WHERE b.id IN :ids " +
+           "AND b.isActive = true " +
+           "AND (bi.isActive = true OR bi IS NULL)")
+    List<Bowl> findByIdsWithItems(@Param("ids") List<String> ids);
 }

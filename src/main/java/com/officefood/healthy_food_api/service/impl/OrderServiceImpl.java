@@ -4,6 +4,7 @@ import com.officefood.healthy_food_api.exception.NotFoundException;
 import com.officefood.healthy_food_api.model.Bowl;
 import com.officefood.healthy_food_api.model.BowlItem;
 import com.officefood.healthy_food_api.model.Order;
+import com.officefood.healthy_food_api.repository.BowlRepository;
 import com.officefood.healthy_food_api.repository.OrderRepository;
 import com.officefood.healthy_food_api.service.FcmService;
 import com.officefood.healthy_food_api.service.OrderService;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderService {
     private final OrderRepository repository;
+    private final BowlRepository bowlRepository;
     private final FcmService fcmService;
 
     @Override
@@ -282,9 +284,58 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     }
 
     @Override
+    @Transactional(readOnly = true)
     public java.util.Optional<Order> findByIdWithBowlsAndUser(String id) {
         log.info("Finding order by id {} with bowls and user data", id);
-        return repository.findByIdWithBowlsAndUser(id);
+        java.util.Optional<Order> orderOpt = repository.findByIdWithBowlsAndUser(id);
+
+        if (orderOpt.isEmpty()) {
+            return orderOpt;
+        }
+
+        Order order = orderOpt.get();
+
+        // Fetch bowl items separately to avoid Cartesian product
+        if (order.getBowls() != null && !order.getBowls().isEmpty()) {
+            java.util.List<String> bowlIds = order.getBowls().stream()
+                .map(Bowl::getId)
+                .distinct()
+                .toList();
+
+            if (!bowlIds.isEmpty()) {
+                // Fetch bowl items
+                java.util.List<Bowl> bowlsWithItems = bowlRepository.findByIdsWithItems(bowlIds);
+                java.util.Map<String, Bowl> bowlItemsMap = bowlsWithItems.stream()
+                    .collect(java.util.stream.Collectors.toMap(Bowl::getId, b -> b));
+
+                // Update bowls with items
+                for (Bowl bowl : order.getBowls()) {
+                    Bowl enriched = bowlItemsMap.get(bowl.getId());
+                    if (enriched != null && enriched.getItems() != null) {
+                        bowl.setItems(enriched.getItems());
+                    }
+                }
+
+                // Fetch templates with steps
+                java.util.List<Bowl> bowlsWithTemplates = repository.fetchBowlTemplates(bowlIds);
+                java.util.Map<String, Bowl> bowlTemplateMap = bowlsWithTemplates.stream()
+                    .collect(java.util.stream.Collectors.toMap(Bowl::getId, b -> b));
+
+                // Update bowls with templates (with steps)
+                for (Bowl bowl : order.getBowls()) {
+                    Bowl enriched = bowlTemplateMap.get(bowl.getId());
+                    if (enriched != null && enriched.getTemplate() != null) {
+                        bowl.setTemplate(enriched.getTemplate());
+                        // Force initialize template steps
+                        if (enriched.getTemplate().getSteps() != null) {
+                            org.hibernate.Hibernate.initialize(enriched.getTemplate().getSteps());
+                        }
+                    }
+                }
+            }
+        }
+
+        return java.util.Optional.of(order);
     }
 
     @Override
@@ -292,7 +343,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
         log.info("Finding orders for user {} with bowls and user data", userId);
         java.util.List<Order> orders = repository.findByUserIdWithBowlsAndUser(userId);
 
-        // Fetch bowl templates separately to avoid Cartesian product
+        // Fetch bowl templates WITH STEPS separately to avoid Cartesian product
         if (!orders.isEmpty()) {
             java.util.List<String> bowlIds = orders.stream()
                     .flatMap(o -> o.getBowls().stream())
@@ -301,7 +352,22 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
                     .toList();
 
             if (!bowlIds.isEmpty()) {
-                repository.fetchBowlTemplates(bowlIds);
+                // Fetch templates with steps
+                java.util.List<Bowl> bowlsWithTemplates = repository.fetchBowlTemplates(bowlIds);
+
+                // Create a map for quick lookup
+                java.util.Map<String, Bowl> bowlMap = bowlsWithTemplates.stream()
+                    .collect(java.util.stream.Collectors.toMap(Bowl::getId, b -> b));
+
+                // Update bowls in orders with fetched templates
+                for (Order order : orders) {
+                    for (Bowl bowl : order.getBowls()) {
+                        Bowl enriched = bowlMap.get(bowl.getId());
+                        if (enriched != null && enriched.getTemplate() != null) {
+                            bowl.setTemplate(enriched.getTemplate());
+                        }
+                    }
+                }
             }
         }
 

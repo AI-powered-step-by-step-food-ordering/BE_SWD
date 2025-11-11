@@ -8,18 +8,44 @@ import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
 import org.mapstruct.*;
 
-@Mapper(config = GlobalMapperConfig.class)
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Mapper(componentModel = "spring")
 public interface TemplateStepMapper {
-    @IgnoreBaseEntityFields
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "template", expression = "java(com.officefood.healthy_food_api.mapper.helpers.BowlTemplateMapperHelper.bowlTemplate(req.getTemplateId()))")
     @Mapping(target = "category", expression = "java(com.officefood.healthy_food_api.mapper.helpers.CategoryMapperHelper.category(req.getCategoryId()))")
+    @Mapping(target = "defaultIngredients", source = "defaultIngredients")
     TemplateStep toEntity(TemplateStepRequest req);
 
     @Mapping(target = "templateId", expression = "java(entityTemplateId(entity))")
     @Mapping(target = "categoryId", expression = "java(entityCategoryId(entity))")
     @Mapping(target = "category", expression = "java(entityCategory(entity))")
+    @Mapping(target = "defaultIngredients", expression = "java(mapDefaultIngredients(entity.getDefaultIngredients()))")
     TemplateStepResponse toResponse(TemplateStep entity);
+
+    /**
+     * Map defaultIngredients từ entity sang DTO
+     * Note: Chỉ map basic info, không enrich với ingredient details
+     * Enrich sẽ được làm ở service layer nếu cần
+     */
+    default List<TemplateStepResponse.DefaultIngredientItemDto> mapDefaultIngredients(
+            List<TemplateStep.DefaultIngredientItem> items) {
+        if (items == null) return null;
+
+        return items.stream()
+            .map(item -> {
+                TemplateStepResponse.DefaultIngredientItemDto dto =
+                    new TemplateStepResponse.DefaultIngredientItemDto();
+                dto.setIngredientId(item.getIngredientId());
+                dto.setQuantity(item.getQuantity());
+                dto.setIsDefault(item.getIsDefault());
+                // ingredientName, unitPrice, unit sẽ được enrich ở service layer
+                return dto;
+            })
+            .collect(Collectors.toList());
+    }
 
     default String entityTemplateId(TemplateStep entity) {
         if (entity == null || entity.getTemplate() == null) return null;

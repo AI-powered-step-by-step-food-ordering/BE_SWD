@@ -23,6 +23,33 @@ public class TemplateStepServiceImpl extends CrudServiceImpl<TemplateStep> imple
     }
 
     @Override
+    public TemplateStep create(TemplateStep entity) {
+        // Generate UUID for ID (TemplateStep requires manual ID assignment)
+        if (entity.getId() == null || entity.getId().isEmpty()) {
+            entity.setId(java.util.UUID.randomUUID().toString());
+        }
+        // defaultIngredients đã được set từ mapper hoặc trực tiếp từ entity
+        return repository.save(entity);
+    }
+
+    @Override
+    public TemplateStep update(String id, TemplateStep entity) {
+        TemplateStep existing = repository.findById(id)
+            .orElseThrow(() -> new RuntimeException("TemplateStep not found: " + id));
+
+        // Update các fields
+        existing.setTemplate(entity.getTemplate());
+        existing.setCategory(entity.getCategory());
+        existing.setMinItems(entity.getMinItems());
+        existing.setMaxItems(entity.getMaxItems());
+        existing.setDefaultQty(entity.getDefaultQty());
+        existing.setDisplayOrder(entity.getDisplayOrder());
+        existing.setDefaultIngredients(entity.getDefaultIngredients()); // Update defaultIngredients
+
+        return repository.save(existing);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<TemplateStep> findAll() {
         return repository.findAllWithJoins();
@@ -34,6 +61,9 @@ public class TemplateStepServiceImpl extends CrudServiceImpl<TemplateStep> imple
         return repository.findByIdWithJoins(id);
     }
 
-    @Override public void moveStep(String stepId, int newIndex) { repository.findById(stepId).orElseThrow(); /* TODO */ }
-
+    @Override
+    public void moveStep(String stepId, int newIndex) {
+        repository.findById(stepId).orElseThrow();
+        /* TODO */
+    }
 }

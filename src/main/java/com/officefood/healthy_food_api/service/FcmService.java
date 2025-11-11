@@ -206,7 +206,7 @@ public class FcmService {
 
         switch (status) {
             case PENDING:
-                message.put("title", "ðŸ”” Order Received");
+                message.put("title", "Order Received");
                 message.put("body", String.format("Your order #%s has been received. Total: %s", orderId, amount));
                 break;
             case CONFIRMED:
@@ -214,24 +214,24 @@ public class FcmService {
                 message.put("body", String.format("Order #%s confirmed! Estimated time: 30 mins", orderId));
                 break;
             case PREPARING:
-                message.put("title", "ðŸ‘¨â€ðŸ³ Chef is Cooking");
+                message.put("title", "Chef is Cooking");
                 message.put("body", "Chef is preparing your delicious meal!");
                 break;
             case READY:
                 String storeName = order.getStore() != null ? order.getStore().getName() : "the restaurant";
-                message.put("title", "ðŸŽ‰ Order Ready!");
+                message.put("title", "Order Ready!");
                 message.put("body", String.format("Order #%s is ready for pickup at %s", orderId, storeName));
                 break;
             case COMPLETED:
-                message.put("title", "âœ¨ Enjoy Your Meal!");
+                message.put("title", "Enjoy Your Meal!");
                 message.put("body", "Order delivered! Don't forget to rate your experience");
                 break;
             case CANCELLED:
-                message.put("title", "âŒ Order Cancelled");
+                message.put("title", "Order Cancelled");
                 message.put("body", String.format("Order #%s cancelled. Refund will be processed within 3-5 days", orderId));
                 break;
             default:
-                message.put("title", "ðŸ“¦ Order Update");
+                message.put("title", "Order Update");
                 message.put("body", String.format("Your order #%s status has been updated", orderId));
         }
 

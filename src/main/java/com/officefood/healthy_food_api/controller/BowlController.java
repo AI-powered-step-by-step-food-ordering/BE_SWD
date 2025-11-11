@@ -1,12 +1,14 @@
 package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.dto.request.BowlRequest;
+import com.officefood.healthy_food_api.dto.request.CreateBowlFromTemplateRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.mapper.BowlMapper;
 import com.officefood.healthy_food_api.model.Bowl;
 import com.officefood.healthy_food_api.provider.ServiceProvider;
+import com.officefood.healthy_food_api.service.TemplateStepEnrichmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class BowlController {
     private final ServiceProvider sp;
     private final BowlMapper mapper;
+    private final TemplateStepEnrichmentService enrichmentService;
 
     // GET /api/bowls/getall
     @GetMapping("/getall")
@@ -116,10 +119,17 @@ public class BowlController {
             pageContent = List.of();
         } else {
             int startIndex = page * size;
-            pageContent = bowls.stream()
+            List<Bowl> pageBowls = bowls.stream()
                     .skip(startIndex)
                     .limit(size)
-                    .map(mapper::toResponse)
+                    .collect(Collectors.toList());
+
+            pageContent = pageBowls.stream()
+                    .map(entity -> {
+                        BowlResponse response = mapper.toResponse(entity);
+                        enrichBowlResponse(response, entity);
+                        return response;
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -134,12 +144,37 @@ public class BowlController {
                 .build();
     }
 
+    /**
+     * Helper method to enrich BowlResponse with ingredient details in defaultIngredients
+     */
+    private void enrichBowlResponse(BowlResponse response, Bowl entity) {
+        if (response.getTemplate() == null || entity.getTemplate() == null) {
+            return;
+        }
+
+        if (response.getTemplate().getSteps() != null &&
+            entity.getTemplate().getSteps() != null) {
+
+            // Enrich each template step's defaultIngredients
+            entity.getTemplate().getSteps().forEach(step -> {
+                response.getTemplate().getSteps().stream()
+                    .filter(stepRes -> stepRes.getId().equals(step.getId()))
+                    .findFirst()
+                    .ifPresent(stepRes -> enrichmentService.enrichDefaultIngredients(stepRes, step));
+            });
+        }
+    }
+
     // GET /api/bowls/getbyid/{id}
     @GetMapping("/getbyid/{id}")
     public ResponseEntity<ApiResponse<BowlResponse>> getById(@PathVariable String id) {
         return sp.bowls()
-                 .findByIdWithTemplateAndSteps(id)
-                 .map(mapper::toResponse)
+                 .findByIdWithTemplateAndItems(id)
+                 .map(entity -> {
+                     BowlResponse response = mapper.toResponse(entity);
+                     enrichBowlResponse(response, entity);
+                     return response;
+                 })
                  .map(bowl -> ResponseEntity.ok(ApiResponse.success(200, "Bowl retrieved successfully", bowl)))
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Bowl not found")));
     }
@@ -176,5 +211,47 @@ public class BowlController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
         sp.bowls().deleteById(id);
         return ResponseEntity.ok(ApiResponse.success(200, "Bowl deleted successfully", null));
+    }
+
+    /**
+     * POST /api/bowls/create-from-template
+     * Tạo Bowl từ template với default ingredients tự động
+     * Sử dụng default quantities từ template (isDefault=true)
+     */
+    @PostMapping("/create-from-template")
+    public ResponseEntity<ApiResponse<BowlResponse>> createFromTemplate(
+            @Valid @RequestBody CreateBowlFromTemplateRequest req) {
+        try {
+            // Tạo bowl từ template với default quantities
+            Bowl bowl = sp.bowls().createFromTemplate(
+                req.getOrderId(),
+                req.getTemplateId()
+            );
+
+            // Override custom name và instruction nếu có
+            if (req.getCustomName() != null && !req.getCustomName().trim().isEmpty()) {
+                bowl.setName(req.getCustomName());
+            }
+            if (req.getInstruction() != null && !req.getInstruction().trim().isEmpty()) {
+                bowl.setInstruction(req.getInstruction());
+            }
+
+            // Update nếu có thay đổi
+            if (req.getCustomName() != null || req.getInstruction() != null) {
+                bowl = sp.bowls().update(bowl.getId(), bowl);
+            }
+
+            // Reload bowl with template and items to prevent LazyInitializationException
+            Bowl enriched = sp.bowls().findByIdWithTemplateAndItems(bowl.getId())
+                .orElse(bowl); // Fallback to original if reload fails
+
+            BowlResponse response = mapper.toResponse(enriched);
+            return ResponseEntity.ok(ApiResponse.success(201,
+                "Bowl created from template successfully with " + enriched.getItems().size() + " items",
+                response));
+        } catch (RuntimeException e) {
+            return ResponseEntity.ok(ApiResponse.error(400, "CREATE_FAILED",
+                "Failed to create bowl from template: " + e.getMessage()));
+        }
     }
 }

@@ -12,13 +12,12 @@ public interface TemplateStepRepository extends UuidJpaRepository<TemplateStep> 
 
     @Query("SELECT ts FROM TemplateStep ts " +
            "LEFT JOIN FETCH ts.template " +
-           "LEFT JOIN FETCH ts.category " +
-           "WHERE ts.isActive = true")
+           "LEFT JOIN FETCH ts.category")
     List<TemplateStep> findAllWithJoins();
 
     @Query("SELECT ts FROM TemplateStep ts " +
            "LEFT JOIN FETCH ts.template " +
            "LEFT JOIN FETCH ts.category " +
-           "WHERE ts.id = :id AND ts.isActive = true")
+           "WHERE ts.id = :id")
     Optional<TemplateStep> findByIdWithJoins(@Param("id") String id);
 }

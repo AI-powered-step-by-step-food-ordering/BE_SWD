@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class TemplateStepController {
     private final ServiceProvider sp;
     private final TemplateStepMapper mapper;
+    private final com.officefood.healthy_food_api.repository.IngredientRepository ingredientRepository;
 
     // GET /api/template_steps/getall
     @GetMapping("/getall")
@@ -28,6 +29,7 @@ public class TemplateStepController {
                  .findAll()
                  .stream()
                  .map(mapper::toResponse)
+                 .map(this::enrichDefaultIngredients) // Enrich each response
                  .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(200, "Template steps retrieved successfully", templateSteps));
     }
@@ -38,6 +40,7 @@ public class TemplateStepController {
         return sp.templateSteps()
                  .findById(id)
                  .map(mapper::toResponse)
+                 .map(this::enrichDefaultIngredients) // Enrich response
                  .map(templateStep -> ResponseEntity.ok(ApiResponse.success(200, "Template step retrieved successfully", templateStep)))
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Template step not found")));
     }
@@ -45,8 +48,54 @@ public class TemplateStepController {
     // POST /api/template_steps/create
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<TemplateStepResponse>> create(@Valid @RequestBody TemplateStepRequest req) {
-        TemplateStepResponse response = mapper.toResponse(sp.templateSteps().create(mapper.toEntity(req)));
+        // Create entity
+        TemplateStep created = sp.templateSteps().create(mapper.toEntity(req));
+
+        // Reload with joins to get category and other relations
+        TemplateStep enriched = sp.templateSteps().findById(created.getId())
+            .orElseThrow(() -> new RuntimeException("Failed to reload created template step"));
+
+        // Map to response with enriched data
+        TemplateStepResponse response = mapper.toResponse(enriched);
+
+        // Enrich defaultIngredients with ingredient details
+        enrichDefaultIngredients(response);
+
         return ResponseEntity.ok(ApiResponse.success(201, "Template step created successfully", response));
+    }
+
+    /**
+     * Enrich defaultIngredients with ingredient name, price, unit
+     */
+    private TemplateStepResponse enrichDefaultIngredients(TemplateStepResponse response) {
+        if (response.getDefaultIngredients() == null || response.getDefaultIngredients().isEmpty()) {
+            return response;
+        }
+
+        // Get all ingredient IDs
+        java.util.List<String> ingredientIds = response.getDefaultIngredients().stream()
+            .map(TemplateStepResponse.DefaultIngredientItemDto::getIngredientId)
+            .collect(java.util.stream.Collectors.toList());
+
+        // Load all ingredients in one query using repository
+        java.util.Map<String, com.officefood.healthy_food_api.model.Ingredient> ingredientMap =
+            ingredientRepository.findAllById(ingredientIds).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                    com.officefood.healthy_food_api.model.Ingredient::getId,
+                    ingredient -> ingredient
+                ));
+
+        // Enrich each default ingredient
+        for (TemplateStepResponse.DefaultIngredientItemDto item : response.getDefaultIngredients()) {
+            com.officefood.healthy_food_api.model.Ingredient ingredient = ingredientMap.get(item.getIngredientId());
+            if (ingredient != null) {
+                item.setIngredientName(ingredient.getName());
+                item.setUnitPrice(ingredient.getUnitPrice());
+                item.setUnit(ingredient.getUnit());
+            }
+        }
+
+        return response;
     }
 
     // PUT /api/template_steps/update/{id}

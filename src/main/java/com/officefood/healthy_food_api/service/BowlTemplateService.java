@@ -9,4 +9,5 @@ public interface BowlTemplateService extends CrudService<BowlTemplate> {
     void publishTemplate(String templateId);
     List<BowlTemplate> findAllWithSteps();
     Optional<BowlTemplate> findByIdWithSteps(String id);
+    List<BowlTemplate> findAllTemplatesWithCompleteDefaults();
 }

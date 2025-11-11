@@ -15,7 +15,6 @@ public interface BowlTemplateRepository extends UuidJpaRepository<BowlTemplate> 
            "LEFT JOIN FETCH t.steps ts " +
            "LEFT JOIN FETCH ts.category c " +
            "WHERE t.isActive = true " +
-           "AND (ts.isActive = true OR ts IS NULL) " +
            "ORDER BY t.createdAt DESC")
     List<BowlTemplate> findAllWithSteps();
 
@@ -24,7 +23,6 @@ public interface BowlTemplateRepository extends UuidJpaRepository<BowlTemplate> 
            "LEFT JOIN FETCH t.steps ts " +
            "LEFT JOIN FETCH ts.category c " +
            "WHERE t.id = :id " +
-           "AND t.isActive = true " +
-           "AND (ts.isActive = true OR ts IS NULL)")
+           "AND t.isActive = true")
     Optional<BowlTemplate> findByIdWithSteps(@Param("id") String id);
 }

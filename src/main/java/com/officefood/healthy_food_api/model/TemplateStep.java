@@ -2,12 +2,20 @@ package com.officefood.healthy_food_api.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-@Entity @Table(name="template_steps")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "template_steps")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class TemplateStep extends BaseEntity {
-    @Id @GeneratedValue @UuidGenerator(style = UuidGenerator.Style.RANDOM)
+    @Id
     @Column(name = "id", length = 36, columnDefinition="VARCHAR(36)")
     private String id;
 
@@ -30,4 +38,24 @@ public class TemplateStep extends BaseEntity {
 
     @Column(name="display_order")
     private Integer displayOrder;
+
+    /**
+     * JSON column lưu danh sách các ingredient ID và quantity mặc định
+     * Format: [{"ingredientId": "xxx", "quantity": 100.0, "isDefault": true}, ...]
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "default_ingredients", columnDefinition = "json")
+    private List<DefaultIngredientItem> defaultIngredients = new ArrayList<>();
+
+    /**
+     * Inner class để lưu thông tin ingredient mặc định
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DefaultIngredientItem {
+        private String ingredientId;
+        private Double quantity;
+        private Boolean isDefault = true;
+    }
 }

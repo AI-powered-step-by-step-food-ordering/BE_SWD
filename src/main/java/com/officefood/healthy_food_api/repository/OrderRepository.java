@@ -46,9 +46,11 @@ public interface OrderRepository extends UuidJpaRepository<Order> {
            "ORDER BY o.createdAt DESC")
     List<Order> findAllWithBowlsAndUser();
 
-    // Helper query to fetch templates for bowls
+    // Helper query to fetch templates WITH STEPS for bowls
     @Query("SELECT DISTINCT b FROM Bowl b " +
            "LEFT JOIN FETCH b.template t " +
+           "LEFT JOIN FETCH t.steps ts " +
+           "LEFT JOIN FETCH ts.category c " +
            "WHERE b.id IN :bowlIds " +
            "AND b.isActive = true " +
            "AND (t.isActive = true OR t IS NULL)")

@@ -10,4 +10,13 @@ public interface BowlService extends CrudService<Bowl> {
     List<Bowl> findAllWithTemplateAndSteps();
     Optional<Bowl> findByIdWithTemplateAndSteps(String id);
     Optional<Bowl> findByIdWithTemplateAndItems(String id);
+
+    /**
+     * Tạo Bowl từ template với default ingredients
+     * Sử dụng default quantities từ template (isDefault=true)
+     * @param orderId ID của order
+     * @param templateId ID của template
+     * @return Bowl đã được tạo với các BowlItems theo default ingredients
+     */
+    Bowl createFromTemplate(String orderId, String templateId);
 }

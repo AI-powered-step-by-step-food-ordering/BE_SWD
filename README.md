@@ -4,24 +4,6 @@
 
 Tài liệu đầy đủ về Push Notification:
 
-### 📚 **[→ Push Notification Documentation Index](./PUSH_NOTIFICATION_DOCS_INDEX.md)**
-
-**Quick Links:**
-- 📱 **[Mobile App Testing Guide](./MOBILE_PUSH_NOTIFICATION_TEST_GUIDE.md)** - Hướng dẫn test với Flutter/React Native
-- 🤖 **[Postman Auto Variables Guide](./POSTMAN_AUTO_VARIABLES_GUIDE.md)** - Tự động lưu biến trong Postman
-- 📦 **[Postman Collection](./Push_Notification_Tests.postman_collection.json)** - Import và test ngay
-
----
-
-## 📖 Other Documentation
-
-- **[Hướng Dẫn Sử Dụng Hệ Thống](./HUONG_DAN_SU_DUNG_HE_THONG.md)**
-- **[Backend Requirements](./backend_requirements.md)**
-- **[Sorting Capability Analysis](./SORTING_CAPABILITY_ANALYSIS.md)**
-- **[Diagrams](./diagrams/README.md)**
-
----
-
 ## 🚀 Features
 
 - ✅ User Authentication & Authorization
