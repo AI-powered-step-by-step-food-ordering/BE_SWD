@@ -1,15 +1,20 @@
 package com.officefood.healthy_food_api.service.impl;
 
+import com.officefood.healthy_food_api.dto.request.UserSearchRequest;
 import com.officefood.healthy_food_api.model.User;
 import com.officefood.healthy_food_api.repository.UserRepository;
 import com.officefood.healthy_food_api.service.UserService;
+import com.officefood.healthy_food_api.specification.UserSpecifications;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -46,5 +51,20 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
     public void changePassword(String userId, String rawPassword) {
         repository.findById(userId).orElseThrow();
         /* TODO */
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<User> search(UserSearchRequest searchRequest) {
+        log.info("Searching users with criteria: {}", searchRequest);
+
+        // Build specification from search request
+        Specification<User> spec = UserSpecifications.withSearchCriteria(searchRequest);
+
+        // Execute search
+        java.util.List<User> users = repository.findAll(spec);
+
+        log.info("Found {} users matching search criteria", users.size());
+        return users;
     }
 }

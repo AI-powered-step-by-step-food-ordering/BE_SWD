@@ -1,9 +1,12 @@
 package com.officefood.healthy_food_api.service.impl;
 
+import com.officefood.healthy_food_api.dto.request.BowlTemplateSearchRequest;
 import com.officefood.healthy_food_api.model.BowlTemplate;
 import com.officefood.healthy_food_api.repository.BowlTemplateRepository;
 import com.officefood.healthy_food_api.service.BowlTemplateService;
+import com.officefood.healthy_food_api.specification.BowlTemplateSpecifications;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,5 +62,17 @@ public class BowlTemplateServiceImpl extends CrudServiceImpl<BowlTemplate> imple
                 return stepsWithDefaults > 0;
             })
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<BowlTemplate> search(BowlTemplateSearchRequest searchRequest) {
+        // Build specification from search request
+        Specification<BowlTemplate> spec = BowlTemplateSpecifications.withSearchCriteria(searchRequest);
+
+        // Execute search
+        java.util.List<BowlTemplate> templates = repository.findAll(spec);
+
+        return templates;
     }
 }

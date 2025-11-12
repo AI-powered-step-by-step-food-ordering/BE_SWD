@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.service;
 
+import com.officefood.healthy_food_api.dto.request.BowlTemplateSearchRequest;
 import com.officefood.healthy_food_api.model.BowlTemplate;
 
 import java.util.List;
@@ -10,4 +11,7 @@ public interface BowlTemplateService extends CrudService<BowlTemplate> {
     List<BowlTemplate> findAllWithSteps();
     Optional<BowlTemplate> findByIdWithSteps(String id);
     List<BowlTemplate> findAllTemplatesWithCompleteDefaults();
+
+    // Search functionality
+    List<BowlTemplate> search(BowlTemplateSearchRequest searchRequest);
 }

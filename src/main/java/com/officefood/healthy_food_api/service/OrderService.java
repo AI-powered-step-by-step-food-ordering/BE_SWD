@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.service;
 
+import com.officefood.healthy_food_api.dto.request.OrderSearchRequest;
 import com.officefood.healthy_food_api.model.Order;
 import java.util.List;
 import java.util.Optional;
@@ -10,4 +11,7 @@ public interface OrderService extends CrudService<Order> {
     List<Order> findAllWithBowlsAndUser();
     Optional<Order> findByIdWithBowlsAndUser(String id);
     List<Order> findByUserIdWithBowlsAndUser(String userId);
+
+    // Search functionality
+    List<Order> search(OrderSearchRequest searchRequest);
 }

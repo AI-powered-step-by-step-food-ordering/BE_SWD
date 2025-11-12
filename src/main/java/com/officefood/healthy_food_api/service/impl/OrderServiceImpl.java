@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.service.impl;
 
+import com.officefood.healthy_food_api.dto.request.OrderSearchRequest;
 import com.officefood.healthy_food_api.exception.NotFoundException;
 import com.officefood.healthy_food_api.model.Bowl;
 import com.officefood.healthy_food_api.model.BowlItem;
@@ -8,9 +9,11 @@ import com.officefood.healthy_food_api.repository.BowlRepository;
 import com.officefood.healthy_food_api.repository.OrderRepository;
 import com.officefood.healthy_food_api.service.FcmService;
 import com.officefood.healthy_food_api.service.OrderService;
+import com.officefood.healthy_food_api.specification.OrderSpecifications;
 import com.officefood.healthy_food_api.utils.IngredientCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -371,6 +374,21 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
             }
         }
 
+        return orders;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<Order> search(OrderSearchRequest searchRequest) {
+        log.info("Searching orders with criteria: {}", searchRequest);
+
+        // Build specification from search request
+        Specification<Order> spec = OrderSpecifications.withSearchCriteria(searchRequest);
+
+        // Execute search
+        java.util.List<Order> orders = repository.findAll(spec);
+
+        log.info("Found {} orders matching search criteria", orders.size());
         return orders;
     }
 }

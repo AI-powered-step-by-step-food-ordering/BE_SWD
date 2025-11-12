@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.dto.request.BowlRequest;
+import com.officefood.healthy_food_api.dto.request.BowlSearchRequest;
 import com.officefood.healthy_food_api.dto.request.CreateBowlFromTemplateRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlResponse;
@@ -26,6 +27,29 @@ public class BowlController {
     private final ServiceProvider sp;
     private final BowlMapper mapper;
     private final TemplateStepEnrichmentService enrichmentService;
+
+    // GET /api/bowls/search - Search endpoint
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<BowlResponse>>> search(
+            @ModelAttribute BowlSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        // Execute search
+        List<Bowl> bowls = sp.bowls().search(searchRequest);
+
+        // Apply sorting
+        List<Bowl> sortedBowls = sortBowls(bowls, sortBy, sortDir);
+
+        // Create paged response
+        PagedResponse<BowlResponse> pagedResponse = createPagedResponse(sortedBowls, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200,
+            "Bowls search completed successfully. Found " + bowls.size() + " results.",
+            pagedResponse));
+    }
 
     // GET /api/bowls/getall
     @GetMapping("/getall")

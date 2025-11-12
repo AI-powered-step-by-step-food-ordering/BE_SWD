@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.UserRequest;
+import com.officefood.healthy_food_api.dto.request.UserSearchRequest;
 import com.officefood.healthy_food_api.dto.request.UserUpdateRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
@@ -36,6 +37,32 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
     @Override
     protected User toEntity(UserRequest request) {
         return mapper.toEntity(request);
+    }
+
+    /**
+     * Search users - simplified (text search only)
+     * GET /api/users/search
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> search(
+            @ModelAttribute UserSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        // Execute search
+        java.util.List<User> users = sp.users().search(searchRequest);
+
+        // Apply sorting
+        java.util.List<User> sortedUsers = sortEntities(users, sortBy, sortDir);
+
+        // Create paged response
+        PagedResponse<UserResponse> pagedResponse = createPagedResponse(sortedUsers, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200,
+            "Users search completed successfully. Found " + users.size() + " results.",
+            pagedResponse));
     }
 
     /**
@@ -198,4 +225,3 @@ public class UserController extends BaseController<User, UserRequest, UserRespon
 
     // DELETE /api/users/delete/{id} - inherited from BaseController
 }
-

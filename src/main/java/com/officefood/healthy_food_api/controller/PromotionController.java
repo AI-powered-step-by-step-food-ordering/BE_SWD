@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.PromotionRequest;
+import com.officefood.healthy_food_api.dto.request.PromotionSearchRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
 import com.officefood.healthy_food_api.dto.response.PromotionResponse;
@@ -35,6 +36,38 @@ public class PromotionController extends BaseController<Promotion, PromotionRequ
     @Override
     protected Promotion toEntity(PromotionRequest request) {
         return mapper.toEntity(request);
+    }
+    
+    /**
+     * Search promotions with multiple criteria
+     * GET /api/promotions/search
+     */
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<PromotionResponse>>> search(
+            @ModelAttribute PromotionSearchRequest searchRequest,
+            @RequestParam(required = false) String[] types,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+        // Handle types array parameter
+        if (types != null && types.length > 0) {
+            searchRequest.setTypesFromArray(types);
+        }
+
+        // Execute search
+        java.util.List<Promotion> promotions = sp.promotions().search(searchRequest);
+        
+        // Apply sorting
+        java.util.List<Promotion> sortedPromotions = sortEntities(promotions, sortBy, sortDir);
+        
+        // Create paged response
+        PagedResponse<PromotionResponse> pagedResponse = createPagedResponse(sortedPromotions, page, size);
+        
+        return ResponseEntity.ok(ApiResponse.success(200, 
+            "Promotions search completed successfully. Found " + promotions.size() + " results.", 
+            pagedResponse));
     }
 
     // POST /api/promotions/create

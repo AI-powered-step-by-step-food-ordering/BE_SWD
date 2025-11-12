@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.CategoryRequest;
+import com.officefood.healthy_food_api.dto.request.CategorySearchRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.CategoryResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
@@ -35,6 +36,30 @@ public class CategoryController extends BaseController<Category, CategoryRequest
     @Override
     protected Category toEntity(CategoryRequest request) {
         return mapper.toEntity(request);
+    }
+
+    // GET /api/categories/search - Simplified search endpoint (text only)
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<CategoryResponse>>> search(
+            @ModelAttribute CategorySearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+
+        // Execute search
+        java.util.List<Category> categories = sp.categories().search(searchRequest);
+
+        // Apply sorting
+        java.util.List<Category> sortedCategories = sortEntities(categories, sortBy, sortDir);
+
+        // Create paged response
+        PagedResponse<CategoryResponse> pagedResponse = createPagedResponse(sortedCategories, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200,
+            "Categories search completed successfully. Found " + categories.size() + " results.",
+            pagedResponse));
     }
 
     // POST /api/categories/create

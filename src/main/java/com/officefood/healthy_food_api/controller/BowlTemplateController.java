@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.BowlTemplateRequest;
+import com.officefood.healthy_food_api.dto.request.BowlTemplateSearchRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.BowlTemplateResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
@@ -48,6 +49,29 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
     @Override
     protected BowlTemplate toEntity(BowlTemplateRequest request) {
         return mapper.toEntity(request);
+    }
+
+    // GET /api/bowl_templates/search - Search endpoint
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<BowlTemplateResponse>>> search(
+            @ModelAttribute BowlTemplateSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        // Execute search
+        java.util.List<BowlTemplate> templates = sp.bowlTemplates().search(searchRequest);
+
+        // Apply sorting
+        java.util.List<BowlTemplate> sortedTemplates = sortEntities(templates, sortBy, sortDir);
+
+        // Create paged response
+        PagedResponse<BowlTemplateResponse> pagedResponse = createPagedResponse(sortedTemplates, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200,
+            "Bowl templates search completed successfully. Found " + templates.size() + " results.",
+            pagedResponse));
     }
 
     @Override

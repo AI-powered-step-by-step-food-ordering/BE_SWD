@@ -1,6 +1,7 @@
 package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.dto.request.OrderRequest;
+import com.officefood.healthy_food_api.dto.request.OrderSearchRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.OrderResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
@@ -25,6 +26,30 @@ public class OrderController {
     private final ServiceProvider sp;
     private final OrderMapper mapper;
     private final TemplateStepEnrichmentService enrichmentService;
+    
+    // GET /api/orders/search - Simplified search endpoint (userId and storeId only)
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<OrderResponse>>> search(
+            @ModelAttribute OrderSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+        
+
+        // Execute search
+        List<Order> orders = sp.orders().search(searchRequest);
+        
+        // Apply sorting
+        List<Order> sortedOrders = sortOrders(orders, sortBy, sortDir);
+        
+        // Create paged response
+        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(sortedOrders, page, size);
+        
+        return ResponseEntity.ok(ApiResponse.success(200, 
+            "Orders search completed successfully. Found " + orders.size() + " results.", 
+            pagedResponse));
+    }
 
     // GET /api/orders/getall
     @GetMapping("/getall")

@@ -1,5 +1,6 @@
 package com.officefood.healthy_food_api.service;
 
+import com.officefood.healthy_food_api.dto.request.BowlSearchRequest;
 import com.officefood.healthy_food_api.model.Bowl;
 
 import java.util.List;
@@ -19,4 +20,7 @@ public interface BowlService extends CrudService<Bowl> {
      * @return Bowl đã được tạo với các BowlItems theo default ingredients
      */
     Bowl createFromTemplate(String orderId, String templateId);
+
+    // Search functionality
+    List<Bowl> search(BowlSearchRequest searchRequest);
 }

@@ -2,6 +2,7 @@ package com.officefood.healthy_food_api.controller;
 
 import com.officefood.healthy_food_api.controller.base.BaseController;
 import com.officefood.healthy_food_api.dto.request.IngredientRequest;
+import com.officefood.healthy_food_api.dto.request.IngredientSearchRequest;
 import com.officefood.healthy_food_api.dto.response.ApiResponse;
 import com.officefood.healthy_food_api.dto.response.IngredientResponse;
 import com.officefood.healthy_food_api.dto.response.PagedResponse;
@@ -35,6 +36,29 @@ public class IngredientController extends BaseController<Ingredient, IngredientR
     @Override
     protected Ingredient toEntity(IngredientRequest request) {
         return mapper.toEntity(request);
+    }
+
+    // GET /api/ingredients/search - Search endpoint
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PagedResponse<IngredientResponse>>> search(
+            @ModelAttribute IngredientSearchRequest searchRequest,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        // Execute search
+        java.util.List<Ingredient> ingredients = sp.ingredients().search(searchRequest);
+
+        // Apply sorting
+        java.util.List<Ingredient> sortedIngredients = sortEntities(ingredients, sortBy, sortDir);
+
+        // Create paged response
+        PagedResponse<IngredientResponse> pagedResponse = createPagedResponse(sortedIngredients, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(200,
+            "Ingredients search completed successfully. Found " + ingredients.size() + " results.",
+            pagedResponse));
     }
 
     @GetMapping("/{id}")

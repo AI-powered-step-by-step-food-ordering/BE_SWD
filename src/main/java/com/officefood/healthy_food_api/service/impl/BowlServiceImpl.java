@@ -1,13 +1,16 @@
 package com.officefood.healthy_food_api.service.impl;
 
+import com.officefood.healthy_food_api.dto.request.BowlSearchRequest;
 import com.officefood.healthy_food_api.model.*;
 import com.officefood.healthy_food_api.repository.BowlRepository;
 import com.officefood.healthy_food_api.repository.BowlTemplateRepository;
 import com.officefood.healthy_food_api.repository.IngredientRepository;
 import com.officefood.healthy_food_api.repository.OrderRepository;
 import com.officefood.healthy_food_api.service.BowlService;
+import com.officefood.healthy_food_api.specification.BowlSpecifications;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -161,5 +164,20 @@ public class BowlServiceImpl extends CrudServiceImpl<Bowl> implements BowlServic
         }
 
         return bowlOpt;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Bowl> search(BowlSearchRequest searchRequest) {
+        log.info("Searching bowls with criteria: {}", searchRequest);
+
+        // Build specification from search request
+        Specification<Bowl> spec = BowlSpecifications.withSearchCriteria(searchRequest);
+
+        // Execute search
+        List<Bowl> bowls = repository.findAll(spec);
+
+        log.info("Found {} bowls matching search criteria", bowls.size());
+        return bowls;
     }
 }

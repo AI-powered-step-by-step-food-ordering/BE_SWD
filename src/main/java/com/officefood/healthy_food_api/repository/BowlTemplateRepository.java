@@ -2,13 +2,14 @@ package com.officefood.healthy_food_api.repository;
 
 import com.officefood.healthy_food_api.model.BowlTemplate;
 import com.officefood.healthy_food_api.repository.base.UuidJpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface BowlTemplateRepository extends UuidJpaRepository<BowlTemplate> {
+public interface BowlTemplateRepository extends UuidJpaRepository<BowlTemplate>, JpaSpecificationExecutor<BowlTemplate> {
 
     // Get all templates with steps and categories
     @Query("SELECT DISTINCT t FROM BowlTemplate t " +

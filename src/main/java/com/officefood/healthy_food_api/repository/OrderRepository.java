@@ -2,13 +2,14 @@ package com.officefood.healthy_food_api.repository;
 
 import com.officefood.healthy_food_api.model.Order;
 import com.officefood.healthy_food_api.repository.base.UuidJpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepository extends UuidJpaRepository<Order> {
+public interface OrderRepository extends UuidJpaRepository<Order>, JpaSpecificationExecutor<Order> {
 
     @Query("""
            select coalesce(sum(bi.quantity * bi.unitPrice), 0)
