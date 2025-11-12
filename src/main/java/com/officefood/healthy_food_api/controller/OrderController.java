@@ -58,16 +58,34 @@ public class OrderController {
             @RequestParam(defaultValue = "5") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
-        // Giới hạn max size để tránh Cartesian Product explosion với JOIN FETCH bowls
-        if (size > 30) {
-            return ResponseEntity.ok(ApiResponse.error(400, "INVALID_SIZE",
-                "Size cannot exceed 50 for orders (to prevent memory overflow due to JOIN FETCH on collections)"));
-        }
 
-        List<Order> allOrders = sp.orders().findAllWithBowlsAndUser();
-        List<Order> sortedOrders = sortOrders(allOrders, sortBy, sortDir);
-        PagedResponse<OrderResponse> pagedResponse = createPagedResponse(sortedOrders, page, size);
-        return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", pagedResponse));
+        try {
+            System.out.println(String.format("getAll called with: page=%d, size=%d, sortBy=%s, sortDir=%s", page, size, sortBy, sortDir));
+
+            // Giới hạn max size để tránh Cartesian Product explosion với JOIN FETCH bowls
+            if (size > 30) {
+                return ResponseEntity.ok(ApiResponse.error(400, "INVALID_SIZE",
+                    "Size cannot exceed 30 for orders (to prevent memory overflow due to JOIN FETCH on collections)"));
+            }
+
+            System.out.println("Fetching all orders with bowls and user...");
+            List<Order> allOrders = sp.orders().findAllWithBowlsAndUser();
+            System.out.println("Found " + (allOrders != null ? allOrders.size() : 0) + " orders");
+
+            System.out.println("Sorting orders...");
+            List<Order> sortedOrders = sortOrders(allOrders, sortBy, sortDir);
+            System.out.println("Sorting completed");
+
+            System.out.println("Creating paged response...");
+            PagedResponse<OrderResponse> pagedResponse = createPagedResponse(sortedOrders, page, size);
+            System.out.println("Paged response created successfully");
+
+            return ResponseEntity.ok(ApiResponse.success(200, "Orders retrieved successfully", pagedResponse));
+        } catch (Exception e) {
+            System.err.println("Error in getAll: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(ApiResponse.error(9999, "UNCATEGORIZED_EXCEPTION", "Internal server error"));
+        }
     }
 
     /**
@@ -130,78 +148,244 @@ public class OrderController {
      * Helper method to create PagedResponse from Order list
      */
     private PagedResponse<OrderResponse> createPagedResponse(List<Order> orders, int page, int size) {
-        if (size < 1) size = 5;
-        if (page < 0) page = 0;
+        try {
+            if (size < 1) size = 5;
+            if (page < 0) page = 0;
 
-        int totalElements = orders.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+            int totalElements = orders == null ? 0 : orders.size();
+            int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
 
-        // Nếu page vượt quá totalPages, trả về empty list
-        List<OrderResponse> pageContent;
-        if (page >= totalPages && totalPages > 0) {
-            pageContent = List.of();
-        } else {
+            // Log pagination details for debugging
+            System.out.println(String.format("Pagination Debug: page=%d, size=%d, totalElements=%d, totalPages=%d",
+                page, size, totalElements, totalPages));
+
+            // Handle empty orders list
+            if (totalElements == 0) {
+                return PagedResponse.<OrderResponse>builder()
+                        .content(List.of())
+                        .page(0)
+                        .size(size)
+                        .totalElements(0)
+                        .totalPages(0)
+                        .first(true)
+                        .last(true)
+                        .build();
+            }
+
+            // Calculate bounds
             int startIndex = page * size;
-            List<Order> pageOrders = orders.stream()
-                    .skip(startIndex)
-                    .limit(size)
-                    .collect(Collectors.toList());
 
-            pageContent = pageOrders.stream()
-                    .map(entity -> {
-                        OrderResponse response = mapper.toResponse(entity);
-                        enrichOrderResponse(response, entity);
-                        return response;
-                    })
-                    .collect(Collectors.toList());
+            // If page is beyond available data, return empty content but valid pagination info
+            List<OrderResponse> pageContent;
+            if (startIndex >= totalElements) {
+                System.out.println(String.format("Page beyond data: startIndex=%d >= totalElements=%d", startIndex, totalElements));
+                pageContent = List.of();
+            } else {
+                try {
+                    // Get page slice with bounds checking
+                    List<Order> pageOrders = orders.stream()
+                            .skip(startIndex)
+                            .limit(size)
+                            .collect(Collectors.toList());
+
+                    System.out.println(String.format("Processing %d orders from index %d", pageOrders.size(), startIndex));
+
+                    // Map to responses with individual error handling
+                    pageContent = pageOrders.stream()
+                            .map(entity -> {
+                                if (entity == null) {
+                                    System.err.println("Warning: Null order entity found");
+                                    return null;
+                                }
+
+                                try {
+                                    OrderResponse response = mapper.toResponse(entity);
+                                    // Try enrichment, but don't fail if it throws exception
+                                    try {
+                                        enrichOrderResponse(response, entity);
+                                    } catch (Exception enrichError) {
+                                        System.err.println("Enrichment failed for order " + entity.getId() + ": " + enrichError.getMessage());
+                                        // Continue with basic response without enrichment
+                                    }
+                                    return response;
+                                } catch (org.hibernate.LazyInitializationException lazyError) {
+                                    // Handle lazy initialization specifically - create minimal response
+                                    System.err.println("LazyInitializationException for order " + entity.getId() + ", creating minimal response");
+                                    try {
+                                        return createMinimalOrderResponse(entity);
+                                    } catch (Exception fallbackError) {
+                                        System.err.println("Even minimal response creation failed for order " + entity.getId() + ": " + fallbackError.getMessage());
+                                        return null;
+                                    }
+                                } catch (Exception mappingError) {
+                                    System.err.println("Mapping failed for order " + (entity.getId() != null ? entity.getId() : "unknown") + ": " + mappingError.getMessage());
+                                    // Try minimal response as fallback
+                                    try {
+                                        return createMinimalOrderResponse(entity);
+                                    } catch (Exception fallbackError) {
+                                        System.err.println("Fallback response creation failed for order " + (entity.getId() != null ? entity.getId() : "unknown") + ": " + fallbackError.getMessage());
+                                        return null;
+                                    }
+                                }
+                            })
+                            .filter(response -> response != null)
+                            .collect(Collectors.toList());
+
+                    System.out.println(String.format("Successfully mapped %d/%d orders", pageContent.size(), pageOrders.size()));
+                } catch (Exception streamError) {
+                    System.err.println("Stream processing error: " + streamError.getMessage());
+                    streamError.printStackTrace();
+                    pageContent = List.of();
+                }
+            }
+
+            return PagedResponse.<OrderResponse>builder()
+                    .content(pageContent)
+                    .page(page)
+                    .size(size)
+                    .totalElements(totalElements)
+                    .totalPages(totalPages)
+                    .first(page == 0)
+                    .last(page >= totalPages - 1 || totalPages == 0)
+                    .build();
+
+        } catch (Exception e) {
+            System.err.println("Fatal error in createPagedResponse: " + e.getMessage());
+            e.printStackTrace();
+
+            // Return safe fallback response
+            return PagedResponse.<OrderResponse>builder()
+                    .content(List.of())
+                    .page(page)
+                    .size(size)
+                    .totalElements(0)
+                    .totalPages(0)
+                    .first(true)
+                    .last(true)
+                    .build();
         }
-
-        return PagedResponse.<OrderResponse>builder()
-                .content(pageContent)
-                .page(page)
-                .size(size)
-                .totalElements(totalElements)
-                .totalPages(totalPages)
-                .first(page == 0)
-                .last(page >= totalPages - 1 || totalPages == 0)
-                .build();
     }
 
     /**
      * Helper method to enrich OrderResponse with ingredient details in defaultIngredients
      */
     private void enrichOrderResponse(OrderResponse response, Order entity) {
-        if (response.getBowls() == null || entity.getBowls() == null) {
+        if (response == null || entity == null) {
             return;
         }
 
-        // Create a map of entity bowls by ID for quick lookup
-        java.util.Map<String, com.officefood.healthy_food_api.model.Bowl> entityBowlMap =
-            entity.getBowls().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                    com.officefood.healthy_food_api.model.Bowl::getId,
-                    b -> b
-                ));
-
-        // Enrich each bowl's template steps
-        for (var bowlResponse : response.getBowls()) {
-            var bowlEntity = entityBowlMap.get(bowlResponse.getId());
-
-            if (bowlEntity == null) continue;
-
-            if (bowlResponse.getTemplate() != null &&
-                bowlResponse.getTemplate().getSteps() != null &&
-                bowlEntity.getTemplate() != null &&
-                bowlEntity.getTemplate().getSteps() != null) {
-
-                // Enrich each template step's defaultIngredients
-                bowlEntity.getTemplate().getSteps().forEach(step -> {
-                    bowlResponse.getTemplate().getSteps().stream()
-                        .filter(stepRes -> stepRes.getId().equals(step.getId()))
-                        .findFirst()
-                        .ifPresent(stepRes -> enrichmentService.enrichDefaultIngredients(stepRes, step));
-                });
+        try {
+            // Check if bowls are present and initialized
+            if (response.getBowls() == null || response.getBowls().isEmpty()) {
+                return;
             }
+
+            if (entity.getBowls() == null || entity.getBowls().isEmpty()) {
+                return;
+            }
+
+            // Check if Hibernate collection is initialized to avoid LazyInitializationException
+            try {
+                if (!org.hibernate.Hibernate.isInitialized(entity.getBowls())) {
+                    System.err.println("Warning: Bowls collection not initialized for order " + entity.getId());
+                    return;
+                }
+            } catch (Exception hibernateCheck) {
+                // If Hibernate is not available or fails, continue with caution
+                System.err.println("Could not check Hibernate initialization, proceeding with caution");
+            }
+
+            // Create a map of entity bowls by ID for quick lookup with comprehensive null safety
+            java.util.Map<String, com.officefood.healthy_food_api.model.Bowl> entityBowlMap;
+            try {
+                entityBowlMap = entity.getBowls().stream()
+                    .filter(b -> {
+                        if (b == null) {
+                            System.err.println("Warning: Found null bowl in order " + entity.getId());
+                            return false;
+                        }
+                        if (b.getId() == null) {
+                            System.err.println("Warning: Found bowl with null ID in order " + entity.getId());
+                            return false;
+                        }
+                        return true;
+                    })
+                    .collect(java.util.stream.Collectors.toMap(
+                        com.officefood.healthy_food_api.model.Bowl::getId,
+                        b -> b,
+                        (b1, b2) -> {
+                            System.err.println("Warning: Duplicate bowl ID " + b1.getId() + " in order " + entity.getId());
+                            return b1; // Keep first if duplicate
+                        }
+                    ));
+            } catch (Exception mapCreationError) {
+                System.err.println("Error creating bowl map for order " + entity.getId() + ": " + mapCreationError.getMessage());
+                return;
+            }
+
+            // Enrich each bowl's template steps
+            for (var bowlResponse : response.getBowls()) {
+                if (bowlResponse == null || bowlResponse.getId() == null) {
+                    continue;
+                }
+
+                var bowlEntity = entityBowlMap.get(bowlResponse.getId());
+                if (bowlEntity == null) {
+                    continue;
+                }
+
+                // Check template and steps existence with null safety
+                if (bowlResponse.getTemplate() == null ||
+                    bowlResponse.getTemplate().getSteps() == null ||
+                    bowlEntity.getTemplate() == null ||
+                    bowlEntity.getTemplate().getSteps() == null) {
+                    continue;
+                }
+
+                // Check if template steps are initialized
+                try {
+                    if (!org.hibernate.Hibernate.isInitialized(bowlEntity.getTemplate().getSteps())) {
+                        System.err.println("Warning: Template steps not initialized for bowl " + bowlEntity.getId());
+                        continue;
+                    }
+                } catch (Exception stepCheck) {
+                    // If check fails, proceed with caution
+                }
+
+                // Enrich each template step's defaultIngredients with comprehensive error handling
+                try {
+                    bowlEntity.getTemplate().getSteps().forEach(step -> {
+                        if (step == null || step.getId() == null) {
+                            return;
+                        }
+
+                        try {
+                            bowlResponse.getTemplate().getSteps().stream()
+                                .filter(stepRes -> stepRes != null &&
+                                               stepRes.getId() != null &&
+                                               stepRes.getId().equals(step.getId()))
+                                .findFirst()
+                                .ifPresent(stepRes -> {
+                                    try {
+                                        enrichmentService.enrichDefaultIngredients(stepRes, step);
+                                    } catch (Exception enrichError) {
+                                        // Silently skip individual enrichment failures
+                                        System.err.println("Individual enrichment failed for step " + step.getId() + ": " + enrichError.getMessage());
+                                    }
+                                });
+                        } catch (Exception stepProcessingError) {
+                            // Silently skip if individual step processing fails
+                            System.err.println("Step processing failed for step " + step.getId() + ": " + stepProcessingError.getMessage());
+                        }
+                    });
+                } catch (Exception stepsIterationError) {
+                    System.err.println("Steps iteration failed for bowl " + bowlEntity.getId() + ": " + stepsIterationError.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            // Log but don't fail - enrichment is optional
+            System.err.println("Error enriching order " + (entity.getId() != null ? entity.getId() : "unknown") + ": " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -369,5 +553,58 @@ public class OrderController {
             return ResponseEntity.ok(ApiResponse.error(500, "FETCH_ERROR",
                 "Failed to fetch order history: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Helper method to create minimal OrderResponse when full mapping fails
+     */
+    private OrderResponse createMinimalOrderResponse(Order entity) {
+        OrderResponse response = new OrderResponse();
+
+        // Set basic fields that don't require proxy initialization
+        response.setId(entity.getId());
+        response.setStatus(entity.getStatus() != null ? entity.getStatus().toString() : null);
+        response.setSubtotalAmount(entity.getSubtotalAmount());
+        response.setPromotionTotal(entity.getPromotionTotal());
+        response.setTotalAmount(entity.getTotalAmount());
+        response.setCreatedAt(entity.getCreatedAt());
+
+        // Try to get userId safely - use the User relationship
+        try {
+            if (entity.getUser() != null && entity.getUser().getId() != null) {
+                response.setUserId(entity.getUser().getId());
+            } else {
+                response.setUserId(null);
+            }
+        } catch (Exception e) {
+            response.setUserId(null);
+        }
+
+        // Try to get storeId safely - use the Store relationship
+        try {
+            if (entity.getStore() != null && entity.getStore().getId() != null) {
+                response.setStoreId(entity.getStore().getId());
+            } else {
+                response.setStoreId(null);
+            }
+        } catch (Exception e) {
+            response.setStoreId(null);
+        }
+
+        // Try to get userFullName safely
+        try {
+            if (entity.getUser() != null && org.hibernate.Hibernate.isInitialized(entity.getUser())) {
+                response.setUserFullName(entity.getUser().getFullName());
+            } else {
+                response.setUserFullName("N/A (lazy load failed)");
+            }
+        } catch (Exception e) {
+            response.setUserFullName("N/A (error loading user)");
+        }
+
+        // Set empty bowls list to avoid null issues
+        response.setBowls(List.of());
+
+        return response;
     }
 }
