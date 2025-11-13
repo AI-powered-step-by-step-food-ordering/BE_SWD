@@ -9,6 +9,7 @@ public class BowlTemplateResponse {
     private String id;
     private String name;
     private String description;
+    private Double defaultPrice; // Tổng giá tiền của tất cả default ingredients
     private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;

@@ -105,8 +105,14 @@ public class BowlServiceImpl extends CrudServiceImpl<Bowl> implements BowlServic
         Set<BowlItem> bowlItems = new HashSet<>();
         double totalPrice = 0.0;
 
+        // Track ingredients để phát hiện duplicate
+        Map<String, List<Double>> ingredientQuantities = new HashMap<>();
+
         for (TemplateStep step : template.getSteps()) {
             if (step.getDefaultIngredients() == null) continue;
+
+            log.debug("Processing step {} with {} default ingredients",
+                step.getId(), step.getDefaultIngredients().size());
 
             for (TemplateStep.DefaultIngredientItem defaultItem : step.getDefaultIngredients()) {
                 // Chỉ tạo BowlItem cho ingredients có isDefault=true
@@ -119,6 +125,11 @@ public class BowlServiceImpl extends CrudServiceImpl<Bowl> implements BowlServic
                     log.warn("Ingredient {} not found, skipping", defaultItem.getIngredientId());
                     continue;
                 }
+
+                // Track để phát hiện duplicate
+                ingredientQuantities
+                    .computeIfAbsent(defaultItem.getIngredientId(), k -> new ArrayList<>())
+                    .add(defaultItem.getQuantity());
 
                 // Sử dụng default quantity từ template
                 Double quantity = defaultItem.getQuantity();
@@ -133,13 +144,26 @@ public class BowlServiceImpl extends CrudServiceImpl<Bowl> implements BowlServic
                 bowlItem.setBowl(bowl);
                 bowlItem.setIngredient(ingredient);
                 bowlItem.setQuantity(quantity);
-                bowlItem.setUnitPrice(itemPrice);
+                // IMPORTANT: Store unit price from ingredient (snapshot), not calculated price
+                bowlItem.setUnitPrice(ingredient.getUnitPrice());
                 bowlItem.setIsActive(true);
 
                 bowlItems.add(bowlItem);
                 totalPrice += itemPrice;
+
+                log.debug("Created BowlItem: ingredientId={}, name={}, quantity={}, unitPrice={}, itemPrice={}",
+                    ingredient.getId(), ingredient.getName(), quantity, ingredient.getUnitPrice(), itemPrice);
             }
         }
+
+        // Log duplicate warnings
+        ingredientQuantities.forEach((ingredientId, quantities) -> {
+            if (quantities.size() > 1) {
+                double totalQty = quantities.stream().mapToDouble(Double::doubleValue).sum();
+                log.warn("⚠️  DUPLICATE INGREDIENT: {} appears {} times with quantities {} (total: {}g)",
+                    ingredientId, quantities.size(), quantities, totalQty);
+            }
+        });
 
         bowl.setItems(bowlItems);
         bowl.setLinePrice(totalPrice);

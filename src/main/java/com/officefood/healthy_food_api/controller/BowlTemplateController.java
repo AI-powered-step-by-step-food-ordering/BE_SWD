@@ -42,6 +42,10 @@ public class BowlTemplateController extends BaseController<BowlTemplate, BowlTem
                     .findFirst()
                     .ifPresent(stepRes -> enrichmentService.enrichDefaultIngredients(stepRes, step));
             });
+            // Tính tổng giá tiền của default ingredients
+            response.setDefaultPrice(enrichmentService.calculateDefaultPrice(response.getSteps()));
+        } else {
+            response.setDefaultPrice(0.0);
         }
         return response;
     }

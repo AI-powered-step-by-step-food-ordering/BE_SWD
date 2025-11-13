@@ -28,5 +28,6 @@ public class TemplateStepResponse {
         private Boolean isDefault;
         private Double unitPrice; // Giá để tính toán
         private String unit; // Đơn vị (gram, ml, piece...)
+        private Double standardQuantity; // Số lượng chuẩn để tính giá
     }
 }

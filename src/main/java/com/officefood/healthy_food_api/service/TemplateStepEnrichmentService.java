@@ -54,6 +54,7 @@ public class TemplateStepEnrichmentService {
                     dto.setIngredientName(ingredient.getName());
                     dto.setUnitPrice(ingredient.getUnitPrice());
                     dto.setUnit(ingredient.getUnit());
+                    dto.setStandardQuantity(ingredient.getStandardQuantity());
                     return dto;
                 })
                 .filter(dto -> dto != null) // Loại bỏ null
@@ -74,6 +75,30 @@ public class TemplateStepEnrichmentService {
         for (int i = 0; i < responses.size(); i++) {
             enrichDefaultIngredients(responses.get(i), entities.get(i));
         }
+    }
+
+    /**
+     * Tính tổng giá tiền của tất cả default ingredients trong bowl template
+     * @param steps Danh sách các steps đã được enriched
+     * @return Tổng giá tiền
+     */
+    public Double calculateDefaultPrice(List<TemplateStepResponse> steps) {
+        if (steps == null || steps.isEmpty()) {
+            return 0.0;
+        }
+
+        return steps.stream()
+                .filter(step -> step.getDefaultIngredients() != null)
+                .flatMap(step -> step.getDefaultIngredients().stream())
+                .mapToDouble(item -> {
+                    if (item.getUnitPrice() == null || item.getQuantity() == null) {
+                        return 0.0;
+                    }
+                    // Tính giá theo tỷ lệ: (quantity / standardQuantity) * unitPrice
+                    double standardQty = item.getStandardQuantity() != null ? item.getStandardQuantity() : 100.0;
+                    return (item.getQuantity() / standardQty) * item.getUnitPrice();
+                })
+                .sum();
     }
 }
 
