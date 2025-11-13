@@ -8,11 +8,10 @@ public class PromotionResponse {
     private String id;
     private String code;
     private String name;
-    private String type;
-    private Double percentOff;
-    private Double amountOff;
-    private Double minOrderValue;
+    private Double discountPercent;
     private Boolean active;
     private String imageUrl;
     private ZonedDateTime createdAt;
+    private ZonedDateTime startsAt;
+    private ZonedDateTime endsAt;
 }

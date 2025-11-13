@@ -45,16 +45,11 @@ public class PromotionController extends BaseController<Promotion, PromotionRequ
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PagedResponse<PromotionResponse>>> search(
             @ModelAttribute PromotionSearchRequest searchRequest,
-            @RequestParam(required = false) String[] types,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
         
-        // Handle types array parameter
-        if (types != null && types.length > 0) {
-            searchRequest.setTypesFromArray(types);
-        }
 
         // Execute search
         java.util.List<Promotion> promotions = sp.promotions().search(searchRequest);

@@ -28,15 +28,6 @@ public class PromotionSpecifications {
                 ));
             }
 
-            // Exact match - single type
-            if (request.getType() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("type"), request.getType()));
-            }
-
-            // Multi-select - types (OR condition)
-            if (request.getTypes() != null && !request.getTypes().isEmpty()) {
-                predicates.add(root.get("type").in(request.getTypes()));
-            }
 
             // Partial match - name (case-insensitive)
             if (request.getName() != null && !request.getName().trim().isEmpty()) {

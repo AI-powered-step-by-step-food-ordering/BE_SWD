@@ -58,6 +58,8 @@ public class SecurityConfig {
                         // Swagger và health checks
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/", "/health", "/actuator/**").permitAll()
+                        // Bowl Analysis AI endpoints - public access for testing
+                        .requestMatchers("/api/bowl-analysis/**").permitAll()
                         // Temporary public access for testing
                         .requestMatchers(HttpMethod.GET, "/api/stores/getall", "/api/stores/getbyid/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/stores/create").permitAll()

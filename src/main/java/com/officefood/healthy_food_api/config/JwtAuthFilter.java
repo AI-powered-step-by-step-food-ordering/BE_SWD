@@ -55,13 +55,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Get Authorization header
         String authHeader = req.getHeader("Authorization");
 
+        System.out.println("JwtAuthFilter: Authorization header = " + (authHeader != null ? "Present (length: " + authHeader.length() + ")" : "Missing"));
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
+            System.out.println("JwtAuthFilter: Extracted JWT token (length: " + token.length() + ")");
 
             try {
                 // Check if token is blacklisted
                 if (!tokenBlacklistService.isBlacklisted(token)) {
                     String username = jwtService.extractUsername(token);
+                    System.out.println("JwtAuthFilter: Token username: " + username);
                     var userDetails = userService.loadUserByUsername(username);
 
                     if (jwtService.isTokenValid(token, userDetails)) {
@@ -73,12 +77,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                         System.out.println("JwtAuthFilter: Authentication successful for user: " + username);
+                    } else {
+                        System.out.println("JwtAuthFilter: Token is not valid for user: " + username);
                     }
+                } else {
+                    System.out.println("JwtAuthFilter: Token is blacklisted");
                 }
             } catch (Exception e) {
                 System.out.println("JwtAuthFilter: Token validation failed: " + e.getMessage());
+                e.printStackTrace();
                 // Continue without authentication
             }
+        } else {
+            System.out.println("JwtAuthFilter: No valid Bearer token found in header");
         }
 
         chain.doFilter(req, res);

@@ -1,0 +1,251 @@
+{
+  "info": {
+    "name": "Bowl Analysis AI - Gemini",
+    "description": "Collection for testing AI Bowl Analysis feature using Google Gemini API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Test Gemini Connection",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text",
+            "description": "JWT token from login"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/test",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "test"]
+        },
+        "description": "Test endpoint to verify Gemini API is working correctly"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Analyze Bowl - Weight Loss",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bowlId\": \"{{bowl_id}}\",\n  \"userMessage\": \"Bowl này có phù hợp với mục tiêu giảm cân của tôi không? Tôi nên điều chỉnh gì?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "analyze"]
+        },
+        "description": "Analyze bowl for weight loss goal"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Analyze Bowl - Muscle Gain",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bowlId\": \"{{bowl_id}}\",\n  \"userMessage\": \"Bowl này có đủ protein để tăng cơ không? Tôi có nên thêm gì không?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "analyze"]
+        },
+        "description": "Analyze bowl for muscle gain goal"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Analyze Bowl - Nutrition Info",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bowlId\": \"{{bowl_id}}\",\n  \"userMessage\": \"Cho tôi biết thông tin dinh dưỡng chi tiết của bowl này: calories, protein, carbs, fats?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "analyze"]
+        },
+        "description": "Get detailed nutrition information"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Analyze Bowl - Meal Timing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bowlId\": \"{{bowl_id}}\",\n  \"userMessage\": \"Bowl này nên ăn vào thời điểm nào trong ngày? Sáng, trưa hay tối?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "analyze"]
+        },
+        "description": "Ask about best meal timing"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Chat - General Nutrition Question",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Tôi nên ăn gì để tăng cơ hiệu quả?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/chat",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "chat"]
+        },
+        "description": "General nutrition chat without specific bowl context"
+      },
+      "response": []
+    },
+    {
+      "name": "7. Chat - Weight Loss Advice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Để giảm cân hiệu quả tôi nên ăn những gì và tránh những gì?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/chat",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "chat"]
+        },
+        "description": "Ask for weight loss advice"
+      },
+      "response": []
+    },
+    {
+      "name": "8. Chat - Protein Sources",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Những nguồn protein tốt nhất cho người tập gym là gì?\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/bowl-analysis/chat",
+          "host": ["{{base_url}}"],
+          "path": ["api", "bowl-analysis", "chat"]
+        },
+        "description": "Ask about protein sources"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4458",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bowl_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+

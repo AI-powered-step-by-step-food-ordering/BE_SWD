@@ -69,4 +69,16 @@ public interface BowlRepository extends UuidJpaRepository<Bowl>, JpaSpecificatio
            "AND b.isActive = true " +
            "AND (bi.isActive = true OR bi IS NULL)")
     List<Bowl> findByIdsWithItems(@Param("ids") List<String> ids);
+
+    // Get bowl by ID with all details for AI analysis (items, ingredients, order, user)
+    @Query("SELECT b FROM Bowl b " +
+           "LEFT JOIN FETCH b.template t " +
+           "LEFT JOIN FETCH b.items bi " +
+           "LEFT JOIN FETCH bi.ingredient i " +
+           "LEFT JOIN FETCH i.category ic " +
+           "LEFT JOIN FETCH b.order o " +
+           "LEFT JOIN FETCH o.user u " +
+           "WHERE b.id = :id " +
+           "AND b.isActive = true")
+    Optional<Bowl> findByIdWithDetailsForAI(@Param("id") String id);
 }

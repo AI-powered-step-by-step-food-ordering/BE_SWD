@@ -36,6 +36,8 @@ public class UserServiceImpl extends CrudServiceImpl<User> implements UserServic
 
         String authority = switch (u.getRole()) {
             case ADMIN -> "ROLE_ADMIN";
+            case STAFF -> "ROLE_STAFF";
+            case USER -> "ROLE_USER";
             default -> "ROLE_USER";
         };
 

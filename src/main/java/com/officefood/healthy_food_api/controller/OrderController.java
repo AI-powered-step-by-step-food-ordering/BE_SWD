@@ -460,6 +460,15 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success(200, "Promotion applied successfully", response));
     }
 
+    // DELETE /api/orders/remove-promo/{id}
+    @DeleteMapping("/remove-promo/{id}")
+    public ResponseEntity<ApiResponse<OrderResponse>> removePromo(@PathVariable String id) {
+        Order withoutPromo = sp.orders().removePromotion(id);
+        Order enriched = sp.orders().findByIdWithBowlsAndUser(withoutPromo.getId()).orElse(withoutPromo);
+        OrderResponse response = mapper.toResponse(enriched);
+        return ResponseEntity.ok(ApiResponse.success(200, "Promotion removed successfully", response));
+    }
+
     // POST /api/orders/confirm/{id}
     @PostMapping("/confirm/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable String id) {

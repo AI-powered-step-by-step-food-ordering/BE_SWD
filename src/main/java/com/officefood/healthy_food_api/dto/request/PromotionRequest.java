@@ -7,14 +7,12 @@ import jakarta.validation.constraints.*;
 public class PromotionRequest {
     @NotBlank private String code;
     @NotBlank private String name;
-    @NotBlank private String type;
-    private Double percentOff;
-    private Double amountOff;
-    private Double minOrderValue;
+    @NotNull
+    @DecimalMin("0.0")
+    @DecimalMax("100.0")
+    private Double discountPercent;
     private java.time.OffsetDateTime startsAt;
     private java.time.OffsetDateTime endsAt;
-    private Integer maxRedemptions;
-    private Integer perOrderLimit;
     private Boolean isActive;
-    private String imageUrl; // Promotion banner image URL
+    private String imageUrl;
 }

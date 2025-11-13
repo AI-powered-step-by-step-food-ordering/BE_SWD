@@ -1,14 +1,11 @@
 package com.officefood.healthy_food_api.model;
 
-import com.officefood.healthy_food_api.model.enums.PromotionType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -41,29 +38,13 @@ public class Promotion extends BaseEntity {
     @Column(nullable = false, length = 255)
     private String name;
 
+    /** % giảm giá (0–100) */
     @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private PromotionType type;
-
-    /** % giảm (0–100). Dùng cho type = PERCENT_OFF */
-    @DecimalMin(value = "0.0", inclusive = true, message = "percentOff must be >= 0")
-    @DecimalMax(value = "100.0", inclusive = true, message = "percentOff must be <= 100")
-    @Digits(integer = 5, fraction = 2)
-    @Column(precision = 7, scale = 2) // ví dụ: 100.00
-    private BigDecimal percentOff;
-
-    /** Số tiền giảm cố định. Dùng cho type = AMOUNT_OFF/... */
-    @DecimalMin(value = "0.00", inclusive = true, message = "amountOff must be >= 0")
-    @Digits(integer = 10, fraction = 2)
-    @Column(precision = 12, scale = 2)
-    private BigDecimal amountOff;
-
-    /** Ngưỡng tối thiểu đơn hàng để áp khuyến mãi */
-    @DecimalMin(value = "0.00", inclusive = true)
-    @Digits(integer = 10, fraction = 2)
-    @Column(precision = 12, scale = 2)
-    private BigDecimal minOrderValue;
+    @DecimalMin(value = "0.0", inclusive = true, message = "discountPercent must be >= 0")
+    @DecimalMax(value = "100.0", inclusive = true, message = "discountPercent must be <= 100")
+    @Digits(integer = 3, fraction = 2)
+    @Column(name = "discount_percent", nullable = false, precision = 5, scale = 2)
+    private BigDecimal discountPercent;
 
     /** Thời điểm hiệu lực (UTC). Có thể null nghĩa là không giới hạn đầu/cuối. */
     @Column(name = "starts_at")
@@ -72,13 +53,6 @@ public class Promotion extends BaseEntity {
     @Column(name = "ends_at")
     private OffsetDateTime endsAt;
 
-    @Min(0)
-    @Column(name = "max_redemptions")
-    private Integer maxRedemptions;
-
-    @Min(0)
-    @Column(name = "per_order_limit")
-    private Integer perOrderLimit;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;

@@ -26,6 +26,8 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
     private final OrderRepository repository;
     private final BowlRepository bowlRepository;
     private final FcmService fcmService;
+            private final com.officefood.healthy_food_api.repository.PromotionRepository promotionRepository;
+    private final com.officefood.healthy_food_api.repository.PromotionRedemptionRepository promotionRedemptionRepository;
 
     @Override
     protected org.springframework.data.jpa.repository.JpaRepository<Order, String> repo() {
@@ -148,11 +150,8 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
             log.info("Bowl {} total: {}", bowl.getId(), bowlPrice);
         }
 
-        // Calculate promotion discount (if any)
-        double promotionDiscount = 0.0;
-        if (order.getPromotionTotal() != null) {
-            promotionDiscount = order.getPromotionTotal();
-        }
+        // Calculate promotion discount from database (query PromotionRedemptions)
+        double promotionDiscount = repository.calcTotalDiscount(orderId);
 
         // Calculate final total
         double total = subtotal - promotionDiscount;
@@ -162,6 +161,7 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
 
         // Update order amounts
         order.setSubtotalAmount(subtotal);
+        order.setPromotionTotal(promotionDiscount);  // Update promotionTotal
         order.setTotalAmount(total);
 
         log.info("Order totals - Subtotal: {}, Promotion: {}, Total: {}",
@@ -192,10 +192,95 @@ public class OrderServiceImpl extends CrudServiceImpl<Order> implements OrderSer
 
     @Override
     public Order applyPromotion(String orderId, String promoCode) {
+        log.info("Applying promotion {} to order {}", promoCode, orderId);
+
         Order order = repository.findById(orderId)
             .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
-        // TODO: lookup promotion, create redemption, recalc
-        return repository.save(order);
+
+        // Kiểm tra xem order đã được confirm chưa - nếu rồi thì không cho đổi promotion
+        if (order.getStatus() != com.officefood.healthy_food_api.model.enums.OrderStatus.PENDING) {
+            throw new IllegalArgumentException("Cannot change promotion for order with status: " + order.getStatus());
+        }
+
+        // Tìm promotion theo code (uppercase)
+        com.officefood.healthy_food_api.model.Promotion promotion =
+            promotionRepository.findByCodeAndIsActiveTrue(promoCode.toUpperCase())
+                .orElseThrow(() -> new NotFoundException("Promotion not found or inactive: " + promoCode));
+
+        // Validate thời gian hiệu lực
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now();
+        if (promotion.getStartsAt() != null && promotion.getStartsAt().isAfter(now)) {
+            throw new IllegalArgumentException("Promotion has not started yet");
+        }
+        if (promotion.getEndsAt() != null && promotion.getEndsAt().isBefore(now)) {
+            throw new IllegalArgumentException("Promotion has expired");
+        }
+
+        // Tìm tất cả promotion redemptions đang APPLIED cho order này
+        java.util.List<com.officefood.healthy_food_api.model.PromotionRedemption> existingRedemptions =
+            promotionRedemptionRepository.findAll().stream()
+                .filter(r -> r.getOrder().getId().equals(orderId) &&
+                            r.getStatus() == com.officefood.healthy_food_api.model.enums.RedemptionStatus.APPLIED)
+                .collect(java.util.stream.Collectors.toList());
+
+        // Void tất cả promotion cũ (cho phép thay đổi promotion)
+        for (com.officefood.healthy_food_api.model.PromotionRedemption oldRedemption : existingRedemptions) {
+            oldRedemption.setStatus(com.officefood.healthy_food_api.model.enums.RedemptionStatus.VOIDED);
+            promotionRedemptionRepository.save(oldRedemption);
+            log.info("Voided old promotion {} for order {}",
+                oldRedemption.getPromotion().getCode(), orderId);
+        }
+
+        // Tạo PromotionRedemption mới
+        com.officefood.healthy_food_api.model.PromotionRedemption redemption =
+            new com.officefood.healthy_food_api.model.PromotionRedemption();
+        redemption.setPromotion(promotion);
+        redemption.setOrder(order);
+        redemption.setStatus(com.officefood.healthy_food_api.model.enums.RedemptionStatus.APPLIED);
+
+        promotionRedemptionRepository.save(redemption);
+
+        log.info("Promotion {} applied to order {}. Recalculating totals...", promoCode, orderId);
+
+        // Recalc totals
+        return recalcTotals(orderId);
+    }
+
+    @Override
+    public Order removePromotion(String orderId) {
+        log.info("Removing all promotions from order {}", orderId);
+
+        Order order = repository.findById(orderId)
+            .orElseThrow(() -> new NotFoundException("Order not found with id: " + orderId));
+
+        // Kiểm tra xem order đã được confirm chưa
+        if (order.getStatus() != com.officefood.healthy_food_api.model.enums.OrderStatus.PENDING) {
+            throw new IllegalArgumentException("Cannot remove promotion for order with status: " + order.getStatus());
+        }
+
+        // Tìm tất cả promotion redemptions đang APPLIED cho order này
+        java.util.List<com.officefood.healthy_food_api.model.PromotionRedemption> existingRedemptions =
+            promotionRedemptionRepository.findAll().stream()
+                .filter(r -> r.getOrder().getId().equals(orderId) &&
+                            r.getStatus() == com.officefood.healthy_food_api.model.enums.RedemptionStatus.APPLIED)
+                .collect(java.util.stream.Collectors.toList());
+
+        if (existingRedemptions.isEmpty()) {
+            log.info("No active promotions found for order {}", orderId);
+            return order; // Không có promotion nào để remove
+        }
+
+        // Void tất cả promotions
+        for (com.officefood.healthy_food_api.model.PromotionRedemption redemption : existingRedemptions) {
+            redemption.setStatus(com.officefood.healthy_food_api.model.enums.RedemptionStatus.VOIDED);
+            promotionRedemptionRepository.save(redemption);
+            log.info("Voided promotion {} for order {}", redemption.getPromotion().getCode(), orderId);
+        }
+
+        log.info("All promotions removed from order {}. Recalculating totals...", orderId);
+
+        // Recalc totals (sẽ tính lại với promotionTotal = 0)
+        return recalcTotals(orderId);
     }
 
     @Override
