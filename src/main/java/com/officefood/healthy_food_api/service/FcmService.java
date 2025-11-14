@@ -96,27 +96,50 @@ public class FcmService {
                                      NotificationType type, Order order, OrderStatus orderStatus,
                                      Map<String, String> additionalData, String imageUrl) {
         try {
-            // Build notification data
+            // Build notification data - IMPORTANT: Add title/body to data for Flutter
             Map<String, String> data = new HashMap<>(additionalData);
             data.put("type", type.name().toLowerCase());
             data.put("click_action", "FLUTTER_NOTIFICATION_CLICK");
+            data.put("title", title); // Flutter needs this in data payload
+            data.put("body", body);   // Flutter needs this in data payload
 
             if (order != null) {
                 data.put("orderId", order.getId().toString());
                 data.put("status", orderStatus.name().toLowerCase());
             }
 
-            // Build Android-specific config
-            AndroidConfig.Builder androidConfigBuilder = AndroidConfig.builder()
+            // Build Android-specific config with enhanced settings
+            AndroidConfig androidConfig = AndroidConfig.builder()
                     .setPriority(AndroidConfig.Priority.HIGH)
                     .setNotification(AndroidNotification.builder()
-                            .setChannelId("order_updates")
+                            .setChannelId("order_updates") // Must match Flutter's AndroidNotificationChannel
+                            .setTitle(title)
+                            .setBody(body)
                             .setColor("#52946B")
+                            .setSound("default")
+                            .setDefaultSound(true)
+                            .setDefaultVibrateTimings(true)
+                            .setDefaultLightSettings(true)
                             .setPriority(AndroidNotification.Priority.HIGH)
-                            .build());
+                            .setVisibility(AndroidNotification.Visibility.PUBLIC)
+                            .build())
+                    .build();
 
-            // Build the message
-            Message.Builder messageBuilder = Message.builder()
+            // Build APNS config for iOS with enhanced settings
+            ApnsConfig apnsConfig = ApnsConfig.builder()
+                    .setAps(Aps.builder()
+                            .setAlert(ApsAlert.builder()
+                                    .setTitle(title)
+                                    .setBody(body)
+                                    .build())
+                            .setSound("default")
+                            .setBadge(1)
+                            .setContentAvailable(true)
+                            .build())
+                    .build();
+
+            // Build the message with BOTH notification AND data payloads
+            Message message = Message.builder()
                     .setToken(user.getFcmToken())
                     .setNotification(com.google.firebase.messaging.Notification.builder()
                             .setTitle(title)
@@ -124,18 +147,15 @@ public class FcmService {
                             .setImage(imageUrl)
                             .build())
                     .putAllData(data)
-                    .setAndroidConfig(androidConfigBuilder.build())
-                    .setApnsConfig(ApnsConfig.builder()
-                            .setAps(Aps.builder()
-                                    .setSound("default")
-                                    .build())
-                            .build());
-
-            Message message = messageBuilder.build();
+                    .setAndroidConfig(androidConfig)
+                    .setApnsConfig(apnsConfig)
+                    .build();
 
             // Send message
             String response = FirebaseMessaging.getInstance().send(message);
-            log.info("âœ… Successfully sent notification to user {}: {}", user.getId(), response);
+            log.info("✅ FCM notification sent successfully to user {}: {}", user.getId(), response);
+            log.debug("📱 Notification - Title: '{}', Body: '{}', Type: {}, OrderId: {}",
+                title, body, type, order != null ? order.getId() : "N/A");
 
             // Save notification history
             saveNotificationHistory(user, order, title, body, type, orderStatus, true, null);
@@ -143,12 +163,15 @@ public class FcmService {
             return true;
 
         } catch (FirebaseMessagingException e) {
-            log.error("âŒ Failed to send notification to user {}: {}", user.getId(), e.getMessage());
+            log.error("❌ FCM error for user {}: Code={}, Message={}",
+                user.getId(),
+                e.getMessagingErrorCode(),
+                e.getMessage());
 
             // Handle invalid token
             String errorCode = e.getMessagingErrorCode() != null ? e.getMessagingErrorCode().name() : "";
             if (errorCode.contains("UNREGISTERED") || errorCode.contains("INVALID_ARGUMENT")) {
-                log.warn("Invalid FCM token for user {}. Clearing token.", user.getId());
+                log.warn("⚠️ Invalid FCM token for user {}. Clearing token.", user.getId());
                 clearUserFcmToken(user);
             }
 
@@ -157,7 +180,7 @@ public class FcmService {
 
             return false;
         } catch (Exception e) {
-            log.error("âŒ Unexpected error sending notification: {}", e.getMessage());
+            log.error("❌ Unexpected error sending notification to user {}: {}", user.getId(), e.getMessage(), e);
             saveNotificationHistory(user, order, title, body, type, orderStatus, false, e.getMessage());
             return false;
         }
@@ -267,4 +290,3 @@ public class FcmService {
         log.info("âœ… FCM token removed for user {}", userId);
     }
 }
-

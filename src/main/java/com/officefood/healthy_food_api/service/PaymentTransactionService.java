@@ -6,4 +6,5 @@ import java.util.List;
 public interface PaymentTransactionService extends CrudService<PaymentTransaction> {
     void authorize(String paymentId); void capture(String paymentId); void refund(String paymentId);
     List<PaymentTransaction> findByUserId(String userId);
+    List<PaymentTransaction> findByOrderId(String orderId);
 }

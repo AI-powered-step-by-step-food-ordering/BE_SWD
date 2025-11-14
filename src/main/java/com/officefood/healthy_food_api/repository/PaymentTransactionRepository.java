@@ -14,4 +14,8 @@ public interface PaymentTransactionRepository extends UuidJpaRepository<PaymentT
     // Get payment transactions by user ID through order relationship
     @Query("SELECT pt FROM PaymentTransaction pt WHERE pt.order.user.id = :userId ORDER BY pt.createdAt DESC")
     List<PaymentTransaction> findByUserId(@Param("userId") String userId);
+
+    // Get payment transactions by order ID
+    @Query("SELECT pt FROM PaymentTransaction pt WHERE pt.order.id = :orderId ORDER BY pt.createdAt DESC")
+    List<PaymentTransaction> findByOrderId(@Param("orderId") String orderId);
 }

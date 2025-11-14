@@ -27,4 +27,9 @@ public class PaymentTransactionServiceImpl extends CrudServiceImpl<PaymentTransa
     public java.util.List<PaymentTransaction> findByUserId(String userId) {
         return repository.findByUserId(userId);
     }
+
+    @Override
+    public java.util.List<PaymentTransaction> findByOrderId(String orderId) {
+        return repository.findByOrderId(orderId);
+    }
 }

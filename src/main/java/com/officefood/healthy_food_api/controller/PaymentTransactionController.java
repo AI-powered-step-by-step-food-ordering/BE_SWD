@@ -79,6 +79,18 @@ public class PaymentTransactionController {
                  .orElse(ResponseEntity.ok(ApiResponse.error(404, "NOT_FOUND", "Payment transaction not found")));
     }
 
+    // GET /api/payment_transactions/getbyorderid/{orderId}
+    @GetMapping("/getbyorderid/{orderId}")
+    public ResponseEntity<ApiResponse<List<PaymentTransactionResponse>>> getByOrderId(@PathVariable String orderId) {
+        List<PaymentTransaction> transactions = sp.payments().findByOrderId(orderId);
+        List<PaymentTransactionResponse> responses = transactions.stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+        String message = String.format("Found %d payment transaction(s) for order %s",
+                transactions.size(), orderId.substring(0, Math.min(8, orderId.length())));
+        return ResponseEntity.ok(ApiResponse.success(200, message, responses));
+    }
+
     // POST /api/payment_transactions/create
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<PaymentTransactionResponse>> create(@Valid @RequestBody PaymentTransactionRequest req) {
