@@ -125,6 +125,107 @@ public class BowlItemServiceImpl extends CrudServiceImpl<BowlItem> implements Bo
     }
 
     @Override
+    public BowlItem update(String id, BowlItem entity) {
+        try {
+            log.info("=== START Updating BowlItem ===");
+            log.info("Updating BowlItem ID: {}", id);
+
+            // Validate entity exists
+            BowlItem existingItem = repository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("BowlItem not found with id: {}", id);
+                    log.error("HINT: Make sure you're using the correct bowl_item ID (not bowlId or ingredientId)");
+                    log.error("To find bowl_items, use GET /api/bowl_items/getall or GET /api/bowls/getbyid/{bowlId}");
+                    return new NotFoundException("BowlItem not found with id: " + id +
+                        ". Make sure you're using the bowl_item ID, not the bowl ID or ingredient ID.");
+                });
+
+            log.info("Existing BowlItem found - Bowl ID: {}, Ingredient ID: {}, Quantity: {}, UnitPrice: {}",
+                existingItem.getBowl() != null ? existingItem.getBowl().getId() : "NULL",
+                existingItem.getIngredient() != null ? existingItem.getIngredient().getId() : "NULL",
+                existingItem.getQuantity(),
+                existingItem.getUnitPrice());
+
+            log.info("New values - Bowl ID: {}, Ingredient ID: {}, Quantity: {}, UnitPrice: {}",
+                entity.getBowl() != null ? entity.getBowl().getId() : "NULL",
+                entity.getIngredient() != null ? entity.getIngredient().getId() : "NULL",
+                entity.getQuantity(),
+                entity.getUnitPrice());
+
+            // Validate new values
+            if (entity.getIngredient() == null || entity.getIngredient().getId() == null) {
+                log.error("Ingredient is null or has no ID");
+                throw new IllegalArgumentException("Ingredient must be specified");
+            }
+
+            if (entity.getBowl() == null || entity.getBowl().getId() == null) {
+                log.error("Bowl is null or has no ID");
+                throw new IllegalArgumentException("Bowl must be specified");
+            }
+
+            // Tự động snapshot unitPrice từ Ingredient nếu không được cung cấp
+            if (entity.getUnitPrice() == null) {
+                log.info("UnitPrice is null, fetching from Ingredient...");
+
+                String ingredientId = entity.getIngredient().getId();
+                log.info("Fetching Ingredient with ID: {}", ingredientId);
+
+                Ingredient ingredient = ingredientRepository.findById(ingredientId)
+                    .orElseThrow(() -> {
+                        log.error("Ingredient not found with id: {}", ingredientId);
+                        return new NotFoundException("Ingredient not found with id: " + ingredientId);
+                    });
+
+                log.info("Ingredient found: ID={}, Name={}, UnitPrice={}",
+                    ingredient.getId(),
+                    ingredient.getName(),
+                    ingredient.getUnitPrice());
+
+                if (ingredient.getUnitPrice() == null) {
+                    log.error("Ingredient unitPrice is null for ingredient: {}", ingredient.getName());
+                    throw new IllegalArgumentException("Ingredient unitPrice cannot be null for: " + ingredient.getName());
+                }
+
+                entity.setUnitPrice(ingredient.getUnitPrice());
+                log.info("UnitPrice set to: {}", ingredient.getUnitPrice());
+            }
+
+            // Set ID to ensure update, not create
+            entity.setId(id);
+
+            log.info("Calling super.update() to save entity...");
+            BowlItem updatedItem = super.update(id, entity);
+            log.info("=== SUCCESS - BowlItem updated with ID: {} ===", updatedItem.getId());
+
+            // Load lại ingredient đầy đủ từ DB
+            String ingredientId = updatedItem.getIngredient().getId();
+            log.info("Loading full Ingredient with ID: {}", ingredientId);
+
+            Ingredient fullIngredient = ingredientRepository.findById(ingredientId)
+                .orElseThrow(() -> new NotFoundException("Ingredient not found: " + ingredientId));
+
+            // Initialize ingredient và category
+            Hibernate.initialize(fullIngredient);
+            if (fullIngredient.getCategory() != null) {
+                Hibernate.initialize(fullIngredient.getCategory());
+            }
+
+            // Set ingredient đã loaded vào updatedItem
+            updatedItem.setIngredient(fullIngredient);
+            log.info("=== BowlItem with full Ingredient ready to return ===");
+
+            return updatedItem;
+
+        } catch (Exception e) {
+            log.error("=== ERROR Updating BowlItem ===");
+            log.error("Error type: {}", e.getClass().getName());
+            log.error("Error message: {}", e.getMessage());
+            log.error("Full stack trace:", e);
+            throw e;
+        }
+    }
+
+    @Override
     public void changeQuantity(String bowlItemId, int qty) {
         repository.findById(bowlItemId).orElseThrow(); /* TODO */
     }

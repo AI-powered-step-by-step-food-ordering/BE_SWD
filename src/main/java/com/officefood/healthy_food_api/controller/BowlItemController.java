@@ -109,6 +109,15 @@ public class BowlItemController {
     @PutMapping("/update/{id}")
     public ResponseEntity<ApiResponse<BowlItemResponse>> update(@PathVariable String id,
                               @Valid @RequestBody BowlItemRequest req) {
+        // Validate ingredient restrictions before updating
+        // Chỉ validate nếu thay đổi ingredient (không phải chỉ thay đổi quantity)
+        IngredientValidationResult validationResult = sp.ingredientRestrictions()
+                .validateIngredientAddition(req.getBowlId(), req.getIngredientId());
+
+        if (!validationResult.isValid()) {
+            return ResponseEntity.ok(ApiResponse.error(400, "INGREDIENT_RESTRICTION_VIOLATED", validationResult.getMessage()));
+        }
+
         BowlItem entity = mapper.toEntity(req);
         entity.setId(id);
         BowlItemResponse response = mapper.toResponse(sp.bowlItems().update(id, entity));
